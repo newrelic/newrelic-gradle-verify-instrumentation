@@ -18,9 +18,9 @@ java {
 dependencies {
     implementation("org.apache.maven:maven-resolver-provider:3.6.1")
     implementation("com.google.guava:guava:28.2-jre")
-    implementation("org.apache.maven.resolver:maven-resolver-transport-http:1.4.1")
-    implementation("org.apache.maven.resolver:maven-resolver-transport-file:1.4.1")
-    implementation("org.apache.maven.resolver:maven-resolver-connector-basic:1.4.1")
+    implementation("org.apache.maven.resolver:maven-resolver-transport-http:1.4.2")
+    implementation("org.apache.maven.resolver:maven-resolver-transport-file:1.4.2")
+    implementation("org.apache.maven.resolver:maven-resolver-connector-basic:1.4.2")
 
     // test deps
     testImplementation("org.codehaus.groovy:groovy:2.5.10")
