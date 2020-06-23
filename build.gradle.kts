@@ -33,7 +33,7 @@ tasks.test {
 }
 
 group = "com.newrelic.agent.java"
-version = "3.0"
+version = "3.1-SNAPSHOT"
 
 tasks {
     val taskScope = this
@@ -55,6 +55,17 @@ gradlePlugin {
 
 
 publishing {
+    repositories {
+        maven {
+            val releasesRepoUrl = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            val snapshotsRepoUrl = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+            url = if (version.toString().endsWith("SNAPSHOT")) snapshotsRepoUrl else releasesRepoUrl
+            credentials {
+                username = System.getenv("SONATYPE_USERNAME")
+                password = System.getenv("SONATYPE_PASSWORD")
+            }
+        }
+    }
     publications {
         register("mavenJava", MavenPublication::class) {
             from(components["java"])
