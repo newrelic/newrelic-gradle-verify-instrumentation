@@ -21,6 +21,7 @@ dependencies {
     implementation("org.apache.maven.resolver:maven-resolver-transport-http:1.4.2")
     implementation("org.apache.maven.resolver:maven-resolver-transport-file:1.4.2")
     implementation("org.apache.maven.resolver:maven-resolver-connector-basic:1.4.2")
+    implementation("commons-codec:commons-codec:1.14")
 
     // test deps
     testImplementation("org.codehaus.groovy:groovy:2.5.10")
