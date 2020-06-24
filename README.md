@@ -36,6 +36,7 @@ Then update your buildscript dependencies in settings.gradle:
 ```gradle
 pluginManagement {
     repositories {
+      mavenLocal()
       mavenCentral()
       gradlePluginPortal()
     }
@@ -43,13 +44,12 @@ pluginManagement {
 ```
 
 
-
 build.gradle
 
 ```gradle
 buildscript {
     dependencies {
-        classpath "com.newrelic.agent.java:gradle-verify-instrumentation-plugin:3.0"
+        classpath "com.newrelic.agent.java:gradle-verify-instrumentation-plugin:3.1"
     }
 }
 
@@ -60,7 +60,7 @@ Or:
 
 ```gradle
  plugins {
-   id("com.newrelic.gradle-verify-instrumentation-plugin") version "3.0"
+   id("com.newrelic.gradle-verify-instrumentation-plugin") version "3.1"
  }
 ```
 
