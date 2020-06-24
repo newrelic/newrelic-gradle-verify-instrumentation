@@ -113,26 +113,6 @@ The `java_agent` repo configuration includes several values you must set if usin
 * `passesFileName` is a file name as a `String` if you want all successful verifications to log to the same file. That is, when the package fails to apply when it should fail, or applies successfully when it should apply successfully. 
 * `verifyClasspath` can be used to verify that the jar successfully applies when loading exactly the `compile` and `implementation` dependencies specified for the implementation jar. 
 
-## Running the plugin
-
-To verify all instrumentation libraries (such as is done during a jenkins run), simply invoke:
-```gradle
-.../java_agent/$ ./gradlew verifyInstrumentation
-```
-...and then go for a fresh cup of coffee. You have enough time to get get a really good cup a couple blocks away.
-
-To verify a specific instrumentation module, invoke:
-
-```gradle
-...cd instrumentation/moduleToVerify
-.../moduleToVerify/$ ../../gradlew verifyInstrumentation
-```
-Or:
-
-```gradle
-.../java_agent/$ ./gradlew :instrumentation:moduleToVerify:verifyInstrumentation
-```
-
 
 ## Additional Dependencies
 
@@ -176,9 +156,4 @@ Please search for and review the existing open issues before submitting a new is
 
 Contributing
 ====================================
-Work with the Open Source Office to update the email alias below.
-
-Contributions are encouraged! If you submit an enhancement request, we'll invite you to contribute the change yourself. Please review our [Contributors Guide](CONTRIBUTING.md).
-
-Keep in mind that when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. If you'd like to execute our corporate CLA, or if you have any questions, 
-please drop us an email at opensource+{{TBD - get email from open source off}}@newrelic.com.
+We encourage your contributions to improve this project! Keep in mind when you submit your pull request, you'll need to sign the CLA via the click-through using CLA-Assistant. You only have to sign the CLA one time per project. If you have any questions, or to execute our corporate CLA, required if your contribution is on behalf of a company, please drop us an email at opensource@newrelic.com.
