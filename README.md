@@ -22,9 +22,9 @@ Required:
 Start using the plugin
 ====================================
 
-To use the plugin locally, you'll first need to publish it to your local repository of Maven.
+To use the plugin locally, first publish it to your local repository of Maven.
   
- After cloning, run this command in the root of this project:
+After cloning, run the following command in the root of this project:
  
  ```bash
 ./gradlew publishToMavenLocal
@@ -64,16 +64,16 @@ Or:
  }
 ```
 
-**Note** For instrumentation bundled with the New Relic java agent, this is already configured and these steps are not required.
+**Note** For instrumentation bundled with the New Relic Java agent, this is already configured and these steps are not required.
 
 ## Configuring the plugin
 
-To configure the plugin for a specific weave instrumentation library, in each instrumentation's `build.gradle`, you'll need to configure a `verifyInstrumentation` block. Within this block you specify maven ranges which your module should pass or fail against.
+To configure the plugin for a specific weave instrumentation library, in each instrumentation's `build.gradle`, you'll need to configure a `verifyInstrumentation` block. Within this block, specify maven ranges that your module should pass or fail against.
 
 The task downloads all versions (and all required dependencies) within the testing ranges. Each version downloaded is then checked to make sure the instrumentation in this module applies as expected:
 
-* If the target code is covered by passes or passesOnly, then the module must apply successfully.
-* If the target code is covered by fails or is outside of a passesOnly range, then the module must not apply successfully.
+* If the target code is covered by `passes` or `passesOnly`, then the module must apply successfully.
+* If the target code is covered by fails or is outside of a `passesOnly` range, then the module must not apply successfully.
 * If the condition above is not met, the gradle task fails with the reason.
 
 ```gradle
@@ -84,12 +84,12 @@ verifyInstrumentation {
 }
 ```
 
-In this example, we are saying: versions 2.0 (inclusive) through versions 2.5 (exclusive) of the "anorm_2.11" library should instrument correctly. We are also saying that versions 1.0 (inclusive) through versions 2.0 (exclusive) should fail. We also assert that versions greater than or equal to 2.5 fail instrumentation. This ensures that our instrumentation only works with the range specified in passes.
+In this example, we are saying that versions 2.0 (inclusive) through versions 2.5 (exclusive) of the "anorm_2.11" library should instrument correctly. We are also saying that versions 1.0 (inclusive) through versions 2.0 (exclusive) should fail. We also assert that versions greater than or equal to 2.5 fail instrumentation. This ensures that our instrumentation only works with the range specified in passes.
 
 There are several options to use to configure the range support. In no particular order:
-* `passes` specifies the range which _should_ be able to be instrumented. It does not perform any checks on versions outside the range.
-* `fails` specifies the range which _should_ fail to be instrumented.
-* `passesOnly` specifies the range which _should_ be able to be instrumented. It then checks all versions outside the range (for the same group:name) to ensure those versions fail.
+* `passes` specifies the range that _should_ be able to be instrumented. It does not perform any checks on versions outside the range.
+* `fails` specifies the range that _should_ fail to be instrumented.
+* `passesOnly` specifies the range that _should_ be able to be instrumented. It then checks all versions outside the range (for the same group:name) to ensure those versions fail.
 * `exclude` specifies versions (can be a range) to exclude
 * `excludeRegex` specifies versions to exclude using a regex, useful for excluding all snapshot builds, for example.
 * `[]` configures an inclusive match
@@ -97,7 +97,7 @@ There are several options to use to configure the range support. In no particula
 
 For more information on range syntax, see [Maven version syntax](https://cwiki.apache.org/confluence/display/MAVENOLD/Dependency+Mediation+and+Conflict+Resolution#DependencyMediationandConflictResolution-DependencyVersionRanges).
 
-**Note** In general, it is preferable to use `passesOnly` as it ensures that only the given range works against your instrumentation, and not anything else. We can rewrite our above example with one line using passesOnly:
+**Note** In general, using `passesOnly` is preferable, as it ensures that only the given range works against your instrumentation, and not anything else. We can rewrite our above example with one line using `passesOnly`:
 
 ```gradle
 verifyInstrumentation {
@@ -116,7 +116,7 @@ The `java_agent` repo configuration includes several values you must set if usin
 
 ## Additional Dependencies
 
-By default the maven library is verified with its transitive dependencies. To specify additional dependencies while verifying, add a configuration closure and use 'compile'.
+By default, the Maven library is verified with its transitive dependencies. To specify additional dependencies while verifying, add a configuration closure and use 'compile'.
 
 ```gradle
 verifyInstrumentation {
@@ -130,7 +130,7 @@ verifyInstrumentation {
 
 The versions to include and exclude are entirely dependent upon the target library being instrumented. 
 
-Once you have the general range of supported versions (something like `[2.0,2.5)`), you'll need to verify the whole range and make note of any failures. If you are maintaining an instrumentation module with an open-ended list (such as `[2.0,)`), then you'll need to run `verifyInstrumentation` periodically to ensure the version range is still correct.
+Once you have the general range of supported versions (something like `[2.0,2.5)`), you need to verify the whole range and make note of any failures. If you are maintaining an instrumentation module with an open-ended list (such as `[2.0,)`), then you need to run `verifyInstrumentation` periodically to ensure the version range is still correct.
 
 You'll probably see that just one build here or there fails. With that, you should add an exception, as it's probably just a problem with a specific build of the target library. If you see a whole string of failures, it might indicate a more fundamental change in the library as of a specific version. In that case, you might need to cap the version support, and create a new instrumentation to handle the newer versions. 
 
@@ -138,7 +138,7 @@ You'll probably see that just one build here or there fails. With that, you shou
 Support
 ====================================
 
-New Relic has open-sourced this project. This project is provided AS-IS WITHOUT WARRANTY OR DEDICATED SUPPORT. Issues and contributions should be reported to the project here on GitHub.
+New Relic has open-sourced this project. This project is provided AS-IS WITHOUT WARRANTY OR DEDICATED SUPPORT. Report issues and contributions to the project here on GitHub.
 
 We encourage you to bring your experiences and questions to the [Explorers Hub](https://discuss.newrelic.com/) where our community members collaborate on solutions and new ideas.
 
