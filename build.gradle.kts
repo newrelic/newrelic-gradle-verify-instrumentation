@@ -42,6 +42,7 @@ tasks {
     jar.apply {
         manifest.attributes["Implementation-Vendor"] = "New Relic, Inc"
         manifest.attributes["Implementation-Version"] = project.version
+        from ("LICENSE")
     }
 }
 
