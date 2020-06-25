@@ -6,6 +6,7 @@ plugins {
     id("groovy")
     id("java-gradle-plugin")
     id("maven-publish")
+    id("signing")
 }
 
 java {
@@ -54,7 +55,6 @@ gradlePlugin {
     }
 }
 
-
 publishing {
     repositories {
         maven {
@@ -72,4 +72,11 @@ publishing {
             from(components["java"])
         }
     }
+}
+
+signing {
+//    val signingKey: String? by project
+//    val signingPassword: String? by project
+//    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign(publishing.publications["mavenJava"])
 }
