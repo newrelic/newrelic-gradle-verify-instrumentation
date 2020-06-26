@@ -34,15 +34,19 @@ tasks.test {
 }
 
 group = "com.newrelic.agent.java"
-version = "3.1-SNAPSHOT"
 
-tasks {
-    val taskScope = this
-    val jar: Jar by taskScope
-    jar.apply {
-        manifest.attributes["Implementation-Vendor"] = "New Relic, Inc"
-        manifest.attributes["Implementation-Version"] = project.version
-        from ("LICENSE")
+// -Psnapshot=false will render a non-snapshot version
+// All other values (including unset) will render a snapshot version.
+val snapshot: String? by project
+version = "3.1" + if (snapshot == "false") "" else "-SNAPSHOT"
+
+tasks.jar {
+    from ("LICENSE")
+    manifest {
+        attributes(mapOf(
+                "Implementation-Vendor" to "New Relic, Inc",
+                "Implementation-Version" to project.version
+        ))
     }
 }
 

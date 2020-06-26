@@ -1,8 +1,9 @@
-name: publish snapshot on main merge
+name: publish release version explicitly
 
 on:
-  push:
-    branches: [ main ]
+  release:
+    types:
+      - published
 
 jobs:
   build:
@@ -17,4 +18,4 @@ jobs:
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: ./gradlew build publish -Psnapshot=true
+        run: ./gradlew build publish -Psnapshot=false
