@@ -30,7 +30,6 @@ After cloning, run the following command in the root of this project:
 ./gradlew publishToMavenLocal
  ```
   
-
 Then update your buildscript dependencies in settings.gradle:
 
 ```gradle
@@ -42,7 +41,6 @@ pluginManagement {
     }
   }
 ```
-
 
 build.gradle
 
