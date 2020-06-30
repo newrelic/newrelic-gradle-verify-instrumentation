@@ -36,10 +36,8 @@ tasks.test {
 
 group = "com.newrelic.agent.java"
 
-// -Psnapshot=false will render a non-snapshot version
-// All other values (including unset) will render a snapshot version.
-val snapshot: String? by project
-version = "3.1" + if (snapshot == "false") "" else "-SNAPSHOT"
+version = "3.1"
+//version = "3.2-SNAPSHOT"
 
 tasks.jar {
     from ("LICENSE")
