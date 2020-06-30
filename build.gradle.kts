@@ -75,6 +75,29 @@ publishing {
     publications {
         register("mavenJava", MavenPublication::class) {
             from(components["java"])
+            pom {
+                name.set(project.name)
+                description.set("Verifies instrumentation applies to library version")
+                url.set("https://github.com/newrelic/newrelic-gradle-verify-instrumentation")
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        distribution.set("repo")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("newrelic")
+                        name.set("New Relic")
+                        email.set("opensource@newrelic.com")
+                    }
+                }
+                scm {
+                    url.set("git@github.com:newrelic/newrelic-gradle-verify-instrumentation.git")
+                    connection.set("scm:git:git@github.com:newrelic/newrelic-gradle-verify-instrumentation.git")
+                }
+            }
         }
     }
 }
