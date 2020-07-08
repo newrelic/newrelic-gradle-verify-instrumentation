@@ -22,15 +22,7 @@ Required:
 Start using the plugin
 ====================================
 
-To use the plugin locally, first publish it to your local repository of Maven.
-  
-After cloning, run the following command in the root of this project:
- 
- ```bash
-./gradlew publishToMavenLocal
- ```
-  
-Then update your buildscript dependencies in settings.gradle:
+To use the plugin, update your buildscript dependencies in settings.gradle:
 
 ```gradle
 pluginManagement {
@@ -42,7 +34,7 @@ pluginManagement {
   }
 ```
 
-build.gradle
+Update your build.gradle:
 
 ```gradle
 buildscript {
@@ -111,6 +103,25 @@ The `java_agent` repo configuration includes several values you must set if usin
 * `passesFileName` is a file name as a `String` if you want all successful verifications to log to the same file. That is, when the package fails to apply when it should fail, or applies successfully when it should apply successfully. 
 * `verifyClasspath` can be used to verify that the jar successfully applies when loading exactly the `compile` and `implementation` dependencies specified for the implementation jar. 
 
+## Running the plugin
+
+To verify all instrumentation libraries, simply invoke:
+```gradle
+.../java_agent/$ ./gradlew verifyInstrumentation
+```
+...and then go for a fresh cup of coffee. You have enough time to get get a really good cup a couple blocks away.
+
+To verify a specific instrumentation module, invoke:
+
+```gradle
+...cd instrumentation/moduleToVerify
+.../moduleToVerify/$ ../../gradlew verifyInstrumentation
+```
+Or:
+
+```gradle
+.../java_agent/$ ./gradlew :instrumentation:moduleToVerify:verifyInstrumentation
+```
 
 ## Additional Dependencies
 
