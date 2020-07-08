@@ -39,7 +39,7 @@ group = "com.newrelic.agent.java"
 // -Prelease=true will render a non-snapshot version
 // All other values (including unset) will render a snapshot version.
 val release: String? by project
-version = "3.1" + if("true" == release) "" else "-SNAPSHOT"
+version = "3.2" + if("true" == release) "" else "-SNAPSHOT"
 
 tasks.jar {
     from ("LICENSE")
@@ -72,40 +72,50 @@ publishing {
             }
         }
     }
-    publications {
-        register("mavenJava", MavenPublication::class) {
-            from(components["java"])
-            pom {
-                name.set(project.name)
-                description.set("Verifies instrumentation applies to library version")
-                url.set("https://github.com/newrelic/newrelic-gradle-verify-instrumentation")
-                licenses {
-                    license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
-                        distribution.set("repo")
+    // afterEvaluate is necessary because java-gradle-plugin
+    // creates its publications in an afterEvaluate callback
+    afterEvaluate {
+        publications {
+            register("mavenJava", MavenPublication::class) {
+                from(components["java"])
+            }
+            // customize all publications here
+            withType(MavenPublication::class) {
+                pom {
+                    name.set(project.name)
+                    description.set("Verifies instrumentation applies to library version")
+                    url.set("https://github.com/newrelic/newrelic-gradle-verify-instrumentation")
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                            distribution.set("repo")
+                        }
                     }
-                }
-                developers {
-                    developer {
-                        id.set("newrelic")
-                        name.set("New Relic")
-                        email.set("opensource@newrelic.com")
+                    developers {
+                        developer {
+                            id.set("newrelic")
+                            name.set("New Relic")
+                            email.set("opensource@newrelic.com")
+                        }
                     }
-                }
-                scm {
-                    url.set("git@github.com:newrelic/newrelic-gradle-verify-instrumentation.git")
-                    connection.set("scm:git:git@github.com:newrelic/newrelic-gradle-verify-instrumentation.git")
+                    scm {
+                        url.set("git@github.com:newrelic/newrelic-gradle-verify-instrumentation.git")
+                        connection.set("scm:git:git@github.com:newrelic/newrelic-gradle-verify-instrumentation.git")
+                    }
                 }
             }
         }
     }
 }
 
-signing {
-    val signingKeyId: String? by project
-    val signingKey: String? by project
-    val signingPassword: String? by project
-    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-    sign(publishing.publications["mavenJava"])
+afterEvaluate {
+    signing {
+        val signingKeyId: String? by project
+        val signingKey: String? by project
+        val signingPassword: String? by project
+        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        sign(publishing.publications["gradle-verify-instrumentation-pluginPluginMarkerMaven"])
+        sign(publishing.publications["mavenJava"])
+    }
 }
