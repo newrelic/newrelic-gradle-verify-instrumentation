@@ -48,13 +48,15 @@ public class AfterEvaluationAction implements Action<Project> {
             return;
         }
 
-        if (options.passesOnly().size() + options.passes().size() == 0) {
-            logger.info("Nothing to do - 'passesOnly' or 'passes' is required.");
-            return;
-        }
+        if(!options.verifyClasspath) {
+            if (options.passesOnly().size() + options.passes().size() == 0) {
+                logger.info("Nothing to do - 'passesOnly' or 'passes' or jar on classpath is required.");
+                return;
+            }
 
-        if (options.passesOnly().size() > 0 == options.passes().size() > 0) {
-            throw new GradleException("'passesOnly' cannot be specified with 'passes'.");
+            if (options.passesOnly().size() > 0 == options.passes().size() > 0) {
+                throw new GradleException("'passesOnly' cannot be specified with 'passes'.");
+            }
         }
 
         // get the repository sources from the user's build.gradle
