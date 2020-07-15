@@ -5,6 +5,7 @@
 
 package com.newrelic.agent.instrumentation.verify;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.aether.repository.RemoteRepository;
 import org.gradle.api.*;
@@ -120,7 +121,8 @@ public class AfterEvaluationAction implements Action<Project> {
         return false;
     }
 
-    private void createProjectDependencyOnAgent(Project project, Object nrAgent) {
+    @VisibleForTesting
+    public void createProjectDependencyOnAgent(Project project, Object nrAgent) {
         project.getConfigurations().create(VERIFIER_TASK_NAME);
         if (nrAgent instanceof File) {
             // allow a local file defined agent
