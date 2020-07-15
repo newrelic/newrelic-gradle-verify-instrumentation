@@ -7,17 +7,14 @@ package com.newrelic.agent.instrumentation.verify;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.UnknownProjectException;
+import org.gradle.api.*;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,12 +25,21 @@ public class AfterEvaluationAction implements Action<Project> {
     private Task verifyCapstoneTask;
     private final Logger logger;
     private final File destinationDir;
+    //this is for testing
+    private final Function<Project, List<RemoteRepository>> getRepositoriesFunction;
+
 
     AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir) {
+        this(options, verifyCapstoneTask, logger, destinationDir, MavenProjectUtil::getMavenRepositories);
+    }
+
+    //this is for testing
+    AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir, Function<Project, List<RemoteRepository>> getRepositoriesFunction) {
         this.options = options;
         this.verifyCapstoneTask = verifyCapstoneTask;
         this.logger = logger;
         this.destinationDir = destinationDir;
+        this.getRepositoriesFunction = getRepositoriesFunction;
     }
 
     /**
@@ -58,7 +64,8 @@ public class AfterEvaluationAction implements Action<Project> {
         }
 
         // get the repository sources from the user's build.gradle
-        List<RemoteRepository> mavenRepositories = MavenProjectUtil.getMavenRepositories(project);
+
+        List<RemoteRepository> mavenRepositories = getRepositoriesFunction.apply(project);
 
         // create collection of excludes
         Set<String> excludedVersions = buildExcludedVersions(options, mavenRepositories);
