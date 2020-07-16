@@ -5,6 +5,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.internal.impldep.org.testng.Assert;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -106,4 +107,24 @@ class AfterEvaluationActionTest {
                 testProject.getConfigurations().getByName(VERIFIER_TASK_NAME).getDependencies().size());
     }
 
+    @Test
+    void shouldBuildExcludedRegexAndVersions() {
+        AfterEvaluationAction testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, getRepositoryFunction);
+        MavenClient mockMavenClient = mock(MavenClient.class);
+        Set<String> excludeRegex = new HashSet<String>();
+        excludeRegex.add("testExcludedRegex:.*(RC|SEC|M)[0-9]*$'");
+        Set<String> resolvedExcludedVersions = new HashSet<String>();
+        Collections.addAll(resolvedExcludedVersions, "test:1.0", "test:2.0", "test:3.0");
+
+        when(mockOptions.excludeRegex()).thenReturn(excludeRegex);
+        when(mockOptions.exclude()).thenReturn(resolvedExcludedVersions);
+        when(mockMavenClient.resolveAvailableVersions(anyString(), anyList()))
+                .thenReturn(resolvedExcludedVersions);
+
+        Set<String> result = testClass.buildExcludedVersions(mockOptions, getRepositoryFunction.apply(mockProject), mockMavenClient);
+        //merge sets to produce expected
+        resolvedExcludedVersions.addAll(excludeRegex);
+
+        Assert.assertEquals(resolvedExcludedVersions, result);
+    }
 }

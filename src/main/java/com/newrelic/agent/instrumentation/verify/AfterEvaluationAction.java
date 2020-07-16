@@ -69,7 +69,7 @@ public class AfterEvaluationAction implements Action<Project> {
         List<RemoteRepository> mavenRepositories = getRepositoriesFunction.apply(project);
 
         // create collection of excludes
-        Set<String> excludedVersions = buildExcludedVersions(options, mavenRepositories);
+        Set<String> excludedVersions = buildExcludedVersions(options, mavenRepositories, MavenClient.INSTANCE);
 
         ProjectTaskFactory taskFactory = new ProjectTaskFactory(project, excludedVersions, logger, destinationDir);
         taskFactory.setPassesFile(options.passesFileName);
@@ -133,12 +133,13 @@ public class AfterEvaluationAction implements Action<Project> {
         }
     }
 
-    private Set<String> buildExcludedVersions(VerifyInstrumentationOptions verifyInstrumentation, List<RemoteRepository> mavenRepositories) {
+    @VisibleForTesting
+    public Set<String> buildExcludedVersions(VerifyInstrumentationOptions verifyInstrumentation, List<RemoteRepository> mavenRepositories, MavenClient mavenClient) {
         Set<String> excludedVersions = new HashSet<>(verifyInstrumentation.excludeRegex());
 
         Set<String> resolvedExclusions = verifyInstrumentation.exclude().stream()
                 .flatMap((String excludeRange) ->
-                        MavenClient.INSTANCE.resolveAvailableVersions(excludeRange, mavenRepositories).stream()
+                        mavenClient.resolveAvailableVersions(excludeRange, mavenRepositories).stream()
                                 .peek(dep -> logger.info("Excluding artifact: " + dep)))
                 .collect(Collectors.toSet());
 
