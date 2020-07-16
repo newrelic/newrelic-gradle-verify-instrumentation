@@ -9,6 +9,9 @@ import org.gradle.internal.impldep.org.testng.Assert;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Answers;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -22,22 +25,30 @@ import static org.mockito.Mockito.*;
 class AfterEvaluationActionTest {
 
     private AfterEvaluationAction testClass;
-    private VerifyInstrumentationOptions mockOptions;
-    private Logger mockLogger;
-    private File mockDestinationDir;
-    private Task mockTask;
-    private Project mockProject;
     private Function<Project, List<RemoteRepository>> getRepositoryFunction;
 
     @BeforeEach
-    void before() {
-        this.mockOptions = mock(VerifyInstrumentationOptions.class);
-        this.mockLogger = mock(Logger.class);
-        this.mockDestinationDir=mock(File.class);
-        this.mockTask = mock(Task.class);
-        this.mockProject = mock(Project.class, RETURNS_DEEP_STUBS);
+    void beforeEach() {
+        MockitoAnnotations.initMocks(this);
         this.getRepositoryFunction = project -> Collections.emptyList();
+        this.testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, getRepositoryFunction);
     }
+
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
+    public Project mockProject;
+
+    @Mock
+    public Task mockTask;
+
+    @Mock
+    public File mockDestinationDir;
+
+    @Mock
+    public Logger mockLogger;
+
+    @Mock
+    public VerifyInstrumentationOptions mockOptions;
+
 
     @Test
     void shouldVerifyProjectWithTaskNameVerifyInstrumentation() {
@@ -85,7 +96,6 @@ class AfterEvaluationActionTest {
 
     @Test
     void shouldCreateDependencyOnAgentOfFileType() {
-        AfterEvaluationAction testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, getRepositoryFunction);
         File mockAgent = new File("/agentForTest");
         Project testProject = ProjectBuilder.builder().build();
 
@@ -97,7 +107,6 @@ class AfterEvaluationActionTest {
 
     @Test
     void shouldCreateDependencyOnAgentOfObjectType() {
-        AfterEvaluationAction testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, getRepositoryFunction);
         Dependency mockAgent = mock(Dependency.class);
         Project testProject = ProjectBuilder.builder().build();
 
@@ -109,7 +118,6 @@ class AfterEvaluationActionTest {
 
     @Test
     void shouldBuildExcludedRegexAndVersions() {
-        AfterEvaluationAction testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, getRepositoryFunction);
         MavenClient mockMavenClient = mock(MavenClient.class);
         Set<String> excludeRegex = new HashSet<String>();
         excludeRegex.add("testExcludedRegex:.*(RC|SEC|M)[0-9]*$'");
