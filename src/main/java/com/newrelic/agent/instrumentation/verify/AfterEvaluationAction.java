@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -98,27 +99,23 @@ public class AfterEvaluationAction implements Action<Project> {
      * Useful in the evaluate phase to add dependencies before the execution phase for only the projects we will actually verify.
      */
     static boolean projectRequiresVerification(Project project) {
-        for (String taskName : project.getGradle().getStartParameter().getTaskNames()) {
-            if (!taskName.endsWith(VERIFIER_TASK_NAME)) {
-                continue;
-            }
+        return project.getGradle().getStartParameter().getTaskNames().stream()
+                .filter(taskName -> taskName.endsWith(VERIFIER_TASK_NAME))
+                .map(taskName -> getProjectPath(project, taskName))
+                .filter(Objects::nonNull)
+                .anyMatch(projectName -> project.getProjectDir().getPath().startsWith(projectName));
+    }
 
-            String projectWithVerifyDir = taskName.replaceFirst(":?" + VERIFIER_TASK_NAME + "$", "").replaceFirst("^:*", ":");
-            if (projectWithVerifyDir.equals(":")) {
-                projectWithVerifyDir = project.getGradle().getStartParameter().getCurrentDir().getPath();
-            } else {
-                try {
-                    projectWithVerifyDir = project.project(projectWithVerifyDir).getProjectDir().getPath();
-                } catch (UnknownProjectException ignored) {
-                    continue;
-                }
-            }
-            // only prepare dependencies for the project(s) requested
-            if (project.getProjectDir().getPath().startsWith(projectWithVerifyDir)) {
-                return true;
-            }
+    private static String getProjectPath(Project project, String taskName) {
+        String projectWithVerifyDir = taskName.replaceFirst(":?" + VERIFIER_TASK_NAME + "$", "").replaceFirst("^:*", ":");
+        if (projectWithVerifyDir.equals(":")) {
+            return project.getGradle().getStartParameter().getCurrentDir().getPath();
         }
-        return false;
+        try {
+            return project.project(projectWithVerifyDir).getProjectDir().getPath();
+        } catch (UnknownProjectException ignored) {
+            return null;
+        }
     }
 
     @VisibleForTesting
