@@ -5,7 +5,6 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.internal.impldep.org.testng.Assert;
 import org.gradle.testfixtures.ProjectBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +18,9 @@ import java.util.*;
 import java.util.function.Function;
 
 import static com.newrelic.agent.instrumentation.verify.VerificationPlugin.VERIFIER_TASK_NAME;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.gradle.internal.impldep.org.testng.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 class AfterEvaluationActionTest {
@@ -133,6 +134,6 @@ class AfterEvaluationActionTest {
         //merge sets to produce expected
         resolvedExcludedVersions.addAll(excludeRegex);
 
-        Assert.assertEquals(resolvedExcludedVersions, result);
+        assertEquals(resolvedExcludedVersions, result);
     }
 }
