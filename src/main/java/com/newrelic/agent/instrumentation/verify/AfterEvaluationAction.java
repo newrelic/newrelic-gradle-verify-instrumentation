@@ -5,19 +5,18 @@
 
 package com.newrelic.agent.instrumentation.verify;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.gradle.api.Action;
-import org.gradle.api.GradleException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.UnknownProjectException;
+import org.gradle.api.*;
 import org.slf4j.Logger;
 
 import java.io.File;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,12 +27,21 @@ public class AfterEvaluationAction implements Action<Project> {
     private Task verifyCapstoneTask;
     private final Logger logger;
     private final File destinationDir;
+    //this is for testing
+    private final Function<Project, List<RemoteRepository>> getRepositoriesFunction;
+
 
     AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir) {
+        this(options, verifyCapstoneTask, logger, destinationDir, MavenProjectUtil::getMavenRepositories);
+    }
+
+    //this is for testing
+    AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir, Function<Project, List<RemoteRepository>> getRepositoriesFunction) {
         this.options = options;
         this.verifyCapstoneTask = verifyCapstoneTask;
         this.logger = logger;
         this.destinationDir = destinationDir;
+        this.getRepositoriesFunction = getRepositoriesFunction;
     }
 
     /**
@@ -58,10 +66,11 @@ public class AfterEvaluationAction implements Action<Project> {
         }
 
         // get the repository sources from the user's build.gradle
-        List<RemoteRepository> mavenRepositories = MavenProjectUtil.getMavenRepositories(project);
+
+        List<RemoteRepository> mavenRepositories = getRepositoriesFunction.apply(project);
 
         // create collection of excludes
-        Set<String> excludedVersions = buildExcludedVersions(options, mavenRepositories);
+        Set<String> excludedVersions = buildExcludedVersions(options, mavenRepositories, MavenClient.INSTANCE);
 
         ProjectTaskFactory taskFactory = new ProjectTaskFactory(project, excludedVersions, logger, destinationDir);
         taskFactory.setPassesFile(options.passesFileName);
@@ -90,30 +99,27 @@ public class AfterEvaluationAction implements Action<Project> {
      * Useful in the evaluate phase to add dependencies before the execution phase for only the projects we will actually verify.
      */
     static boolean projectRequiresVerification(Project project) {
-        for (String taskName : project.getGradle().getStartParameter().getTaskNames()) {
-            if (!taskName.endsWith(VERIFIER_TASK_NAME)) {
-                continue;
-            }
-
-            String projectWithVerifyDir = taskName.replaceFirst(":?" + VERIFIER_TASK_NAME + "$", "").replaceFirst("^:*", ":");
-            if (projectWithVerifyDir.equals(":")) {
-                projectWithVerifyDir = project.getGradle().getStartParameter().getCurrentDir().getPath();
-            } else {
-                try {
-                    projectWithVerifyDir = project.project(projectWithVerifyDir).getProjectDir().getPath();
-                } catch (UnknownProjectException ignored) {
-                    continue;
-                }
-            }
-            // only prepare dependencies for the project(s) requested
-            if (project.getProjectDir().getPath().startsWith(projectWithVerifyDir)) {
-                return true;
-            }
-        }
-        return false;
+        return project.getGradle().getStartParameter().getTaskNames().stream()
+                .filter(taskName -> taskName.endsWith(VERIFIER_TASK_NAME))
+                .map(taskName -> getProjectPath(project, taskName))
+                .filter(Objects::nonNull)
+                .anyMatch(projectName -> project.getProjectDir().getPath().startsWith(projectName));
     }
 
-    private void createProjectDependencyOnAgent(Project project, Object nrAgent) {
+    private static String getProjectPath(Project project, String taskName) {
+        String projectWithVerifyDir = taskName.replaceFirst(":?" + VERIFIER_TASK_NAME + "$", "").replaceFirst("^:*", ":");
+        if (projectWithVerifyDir.equals(":")) {
+            return project.getGradle().getStartParameter().getCurrentDir().getPath();
+        }
+        try {
+            return project.project(projectWithVerifyDir).getProjectDir().getPath();
+        } catch (UnknownProjectException ignored) {
+            return null;
+        }
+    }
+
+    @VisibleForTesting
+    public void createProjectDependencyOnAgent(Project project, Object nrAgent) {
         project.getConfigurations().create(VERIFIER_TASK_NAME);
         if (nrAgent instanceof File) {
             // allow a local file defined agent
@@ -124,12 +130,13 @@ public class AfterEvaluationAction implements Action<Project> {
         }
     }
 
-    private Set<String> buildExcludedVersions(VerifyInstrumentationOptions verifyInstrumentation, List<RemoteRepository> mavenRepositories) {
+    @VisibleForTesting
+    public Set<String> buildExcludedVersions(VerifyInstrumentationOptions verifyInstrumentation, List<RemoteRepository> mavenRepositories, MavenClient mavenClient) {
         Set<String> excludedVersions = new HashSet<>(verifyInstrumentation.excludeRegex());
 
         Set<String> resolvedExclusions = verifyInstrumentation.exclude().stream()
                 .flatMap((String excludeRange) ->
-                        MavenClient.INSTANCE.resolveAvailableVersions(excludeRange, mavenRepositories).stream()
+                        mavenClient.resolveAvailableVersions(excludeRange, mavenRepositories).stream()
                                 .peek(dep -> logger.info("Excluding artifact: " + dep)))
                 .collect(Collectors.toSet());
 
