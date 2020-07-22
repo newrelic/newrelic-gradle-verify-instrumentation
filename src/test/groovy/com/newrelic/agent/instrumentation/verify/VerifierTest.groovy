@@ -11,12 +11,32 @@ import org.gradle.api.Task
 import org.gradle.api.invocation.Gradle
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
+import org.mockito.Mock
+import org.mockito.MockitoAnnotations
+import org.slf4j.Logger
 
+import java.util.function.Function
 import java.util.stream.Collectors
 
 import static org.junit.jupiter.api.Assertions.*
 
 class VerifierTest {
+
+    private AfterEvaluationAction testClass;
+    private Function<Project, List<RemoteRepository>> getRepositoryFunction;
+
+    @Mock
+    public Task mockTask;
+
+    @Mock
+    public File mockDestinationDir;
+
+    @Mock
+    public Logger mockLogger;
+
+    @Mock
+    public VerifyInstrumentationOptions mockOptions;
+
     @Test
     void testVerifierTaskAdded() {
         Project project = ProjectBuilder.builder().build()
@@ -28,6 +48,9 @@ class VerifierTest {
 
     @Test
     void testAddDependenciesForVerifierTasks() {
+        MockitoAnnotations.initMocks(this);
+        this.getRepositoryFunction = {project -> Collections.emptyList()};
+        this.testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, getRepositoryFunction);
         Project root = ProjectBuilder.builder().withName("root").build()
         Project sub1 = ProjectBuilder.builder().withName("sub1").withParent(root).build()
         Project subsub1 = ProjectBuilder.builder().withName("subsub1").withParent(sub1).build()
@@ -37,42 +60,42 @@ class VerifierTest {
         // simulate: gradle jar verifyInstrumentation
         gradle.startParameter.setTaskNames(["jar", "verifyInstrumentation"])
         gradle.startParameter.setCurrentDir(root.getProjectDir())
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(root))
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(sub1))
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(subsub1))
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(sub2))
+        assertTrue(testClass.projectRequiresVerification(root))
+        assertTrue(testClass.projectRequiresVerification(sub1))
+        assertTrue(testClass.projectRequiresVerification(subsub1))
+        assertTrue(testClass.projectRequiresVerification(sub2))
 
         // simulate: gradle jar sub1:verifyInstrumentation publish
         gradle.startParameter.setTaskNames(["jar", "sub1:verifyInstrumentation", "publish"])
         gradle.startParameter.setCurrentDir(root.getProjectDir())
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(root))
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(sub1))
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(subsub1))
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(sub2))
+        assertFalse(testClass.projectRequiresVerification(root))
+        assertTrue(testClass.projectRequiresVerification(sub1))
+        assertTrue(testClass.projectRequiresVerification(subsub1))
+        assertFalse(testClass.projectRequiresVerification(sub2))
 
         // simulate: cd sub1 && gradle verifyInstrumentation
         gradle.startParameter.setTaskNames(["verifyInstrumentation"])
         gradle.startParameter.setCurrentDir(sub1.getProjectDir())
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(root))
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(sub1))
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(subsub1))
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(sub2))
+        assertFalse(testClass.projectRequiresVerification(root))
+        assertTrue(testClass.projectRequiresVerification(sub1))
+        assertTrue(testClass.projectRequiresVerification(subsub1))
+        assertFalse(testClass.projectRequiresVerification(sub2))
 
         // simulate: gradle jar sub1:subsub1:verifyInstrumentation publish
         gradle.startParameter.setTaskNames(["jar", "sub1:subsub1:verifyInstrumentation", "publish"])
         gradle.startParameter.setCurrentDir(root.getProjectDir())
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(root))
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(sub1))
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(subsub1))
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(sub2))
+        assertFalse(testClass.projectRequiresVerification(root))
+        assertFalse(testClass.projectRequiresVerification(sub1))
+        assertTrue(testClass.projectRequiresVerification(subsub1))
+        assertFalse(testClass.projectRequiresVerification(sub2))
 
         // simulate: cd sub1/subsub1 && gradle verifyInstrumentation
         gradle.startParameter.setTaskNames(["verifyInstrumentation"])
         gradle.startParameter.setCurrentDir(subsub1.getProjectDir())
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(root))
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(sub1))
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(subsub1))
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(sub2))
+        assertFalse(testClass.projectRequiresVerification(root))
+        assertFalse(testClass.projectRequiresVerification(sub1))
+        assertTrue(testClass.projectRequiresVerification(subsub1))
+        assertFalse(testClass.projectRequiresVerification(sub2))
     }
 
     @Test

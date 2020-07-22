@@ -10,7 +10,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.internal.matchers.Any;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -60,7 +62,7 @@ class AfterEvaluationActionTest {
         when(mockProject.getGradle().getStartParameter().getCurrentDir().getPath()).thenReturn(projectPath);
         when(mockProject.getProjectDir().getPath()).thenReturn(projectPath);
 
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(mockProject));
+        assertTrue(testClass.projectRequiresVerification(mockProject));
     }
 
     @Test
@@ -72,7 +74,7 @@ class AfterEvaluationActionTest {
         when(mockProject.project(":"+projectPath).getProjectDir().getPath()).thenReturn(projectPath);
         when(mockProject.getProjectDir().getPath()).thenReturn(projectPath);
 
-        assertTrue(AfterEvaluationAction.projectRequiresVerification(mockProject));
+        assertTrue(testClass.projectRequiresVerification(mockProject));
     }
 
     @Test
@@ -81,7 +83,7 @@ class AfterEvaluationActionTest {
         taskNames.add(VERIFIER_TASK_NAME + "needs to be at end. This won't work.");
         when(mockProject.getGradle().getStartParameter().getTaskNames()).thenReturn(taskNames);
 
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(mockProject));
+        assertFalse(testClass.projectRequiresVerification(mockProject));
     }
 
     @Test
@@ -92,7 +94,7 @@ class AfterEvaluationActionTest {
         when(mockProject.getGradle().getStartParameter().getTaskNames()).thenReturn(taskNames);
         when(mockProject.project(":"+projectPath)).thenThrow(new UnknownProjectException("nothing here"));
 
-        assertFalse(AfterEvaluationAction.projectRequiresVerification(mockProject));
+        assertFalse(testClass.projectRequiresVerification(mockProject));
     }
 
     @Test
