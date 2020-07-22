@@ -106,7 +106,7 @@ public class AfterEvaluationAction implements Action<Project> {
                 .anyMatch(projectName -> project.getProjectDir().getPath().startsWith(projectName));
     }
 
-    private String getProjectPath(Project project, String taskName) {
+    public String getProjectPath(Project project, String taskName) {
         String projectWithVerifyDir = taskName.replaceFirst(":?" + VERIFIER_TASK_NAME + "$", "").replaceFirst("^:*", ":");
         if (projectWithVerifyDir.equals(":")) {
             return project.getGradle().getStartParameter().getCurrentDir().getPath();
