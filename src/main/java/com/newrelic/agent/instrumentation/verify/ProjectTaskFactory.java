@@ -49,6 +49,13 @@ public class ProjectTaskFactory {
         this.passesFile = passesFileName == null || passesFileName.isEmpty() ? null : project.file(passesFileName);
     }
 
+    public void setExcludedVersions(@Nonnull Collection<String> excludedVersions) {
+        if (excludedVersions == null) {
+            throw new NullPointerException("excludeVersions must not be null");
+        }
+        this.excludeVersions = excludedVersions.stream().map(Pattern::compile).collect(Collectors.toList());
+    }
+
     @SuppressWarnings("ConstantConditions") // I don't trust that the annotations will actually be respected.
     public ProjectTaskFactory(@Nonnull Project project, Logger logger, File destinationDir) {
         if (project == null) {
@@ -58,7 +65,6 @@ public class ProjectTaskFactory {
 
         this.logger = logger;
         this.project = project;
-        this.excludeVersions = excludeVersions.stream().map(Pattern::compile).collect(Collectors.toList());
         this.destinationDir = destinationDir;
 
         mavenRepositories = MavenProjectUtil.getMavenRepositories(project);

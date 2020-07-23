@@ -74,8 +74,8 @@ public class AfterEvaluationAction implements Action<Project> {
         // create collection of excludes
         Set<String> excludedVersions = buildExcludedVersions(options, mavenRepositories, MavenClient.INSTANCE);
 
-        ProjectTaskFactory taskFactory = new ProjectTaskFactory(project, excludedVersions, logger, destinationDir);
         taskFactory.setPassesFile(options.passesFileName);
+        taskFactory.setExcludedVersions(excludedVersions);
 
         // Configuration to download/reference the agent.
         createProjectDependencyOnAgent(project, options.getNrAgent());
