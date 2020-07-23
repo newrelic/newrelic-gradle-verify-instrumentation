@@ -10,9 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.matchers.Any;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -21,8 +19,7 @@ import java.util.function.Function;
 
 import static com.newrelic.agent.instrumentation.verify.VerificationPlugin.VERIFIER_TASK_NAME;
 import static org.gradle.internal.impldep.org.testng.Assert.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class AfterEvaluationActionTest {
@@ -34,11 +31,14 @@ class AfterEvaluationActionTest {
     void beforeEach() {
         MockitoAnnotations.initMocks(this);
         this.getRepositoryFunction = project -> Collections.emptyList();
-        this.testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, getRepositoryFunction);
+        this.testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, taskFactory, getRepositoryFunction);
     }
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     public Project mockProject;
+
+    @Mock
+    public ProjectTaskFactory taskFactory;
 
     @Mock
     public Task mockTask;

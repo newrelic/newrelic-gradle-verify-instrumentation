@@ -27,21 +27,23 @@ public class AfterEvaluationAction implements Action<Project> {
     private Task verifyCapstoneTask;
     private final Logger logger;
     private final File destinationDir;
+    private final ProjectTaskFactory taskFactory;
     //this is for testing
     private final Function<Project, List<RemoteRepository>> getRepositoriesFunction;
 
 
-    AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir) {
-        this(options, verifyCapstoneTask, logger, destinationDir, MavenProjectUtil::getMavenRepositories);
+    AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir, ProjectTaskFactory taskFactory) {
+        this(options, verifyCapstoneTask, logger, destinationDir, taskFactory, MavenProjectUtil::getMavenRepositories);
     }
 
     //this is for testing
-    AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir, Function<Project, List<RemoteRepository>> getRepositoriesFunction) {
+    AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir, ProjectTaskFactory taskFactory, Function<Project, List<RemoteRepository>> getRepositoriesFunction) {
         this.options = options;
         this.verifyCapstoneTask = verifyCapstoneTask;
         this.logger = logger;
         this.destinationDir = destinationDir;
         this.getRepositoriesFunction = getRepositoriesFunction;
+        this.taskFactory = taskFactory;
     }
 
     /**

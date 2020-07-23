@@ -39,7 +39,7 @@ public class VerificationPlugin implements Plugin<Project> {
                 verifyInstrumentation,
                 verifyCapstoneTask,
                 target.getLogger(),
-                destinationDir));
+                destinationDir, new ProjectTaskFactory(target, target.getLogger(), destinationDir)));
     }
 
 }
