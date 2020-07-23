@@ -224,7 +224,7 @@ class ProjectTaskFactoryTest {
     private void givenTaskFactoryExcludingVersionTwo() {
         target = new ProjectTaskFactory(project, NOPLogger.NOP_LOGGER, tempDir.toFile());
         target.setPassesFile(verifyInstrumentationOptions.passesFileName);
-        Set<String> excludedVersion = new HashSet<>(Arrays.asList("foo:bar:2.0"));
+        Set<String> excludedVersion = Collections.singleton("foo:bar:2.0");
         target.setExcludedVersions(excludedVersion);
     }
 

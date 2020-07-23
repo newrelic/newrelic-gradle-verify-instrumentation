@@ -9,6 +9,7 @@ import org.eclipse.aether.repository.RemoteRepository
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.invocation.Gradle
+import org.gradle.internal.impldep.org.junit.Before
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
 import org.mockito.Mock
@@ -24,6 +25,11 @@ class VerifierTest {
 
     private AfterEvaluationAction testClass;
     private Function<Project, List<RemoteRepository>> getRepositoryFunction;
+
+    @Before
+    void before() {
+        MockitoAnnotations.initMocks(this);
+    }
 
     @Mock
     public ProjectTaskFactory taskFactory;
@@ -51,7 +57,6 @@ class VerifierTest {
 
     @Test
     void testAddDependenciesForVerifierTasks() {
-        MockitoAnnotations.initMocks(this);
         this.getRepositoryFunction = {project -> Collections.emptyList()};
         this.testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, taskFactory, getRepositoryFunction);
         Project root = ProjectBuilder.builder().withName("root").build()
