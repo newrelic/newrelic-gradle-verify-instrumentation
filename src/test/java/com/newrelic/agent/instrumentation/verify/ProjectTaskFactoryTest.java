@@ -25,14 +25,7 @@ import org.opentest4j.AssertionFailedError;
 import org.slf4j.helpers.NOPLogger;
 
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -229,12 +222,12 @@ class ProjectTaskFactoryTest {
     }
 
     private void givenTaskFactoryExcludingVersionTwo() {
-        target = new ProjectTaskFactory(project, Collections.singletonList("foo:bar:2.0"), NOPLogger.NOP_LOGGER, tempDir.toFile());
+        target = new ProjectTaskFactory(project, NOPLogger.NOP_LOGGER, tempDir.toFile());
         target.setPassesFile(verifyInstrumentationOptions.passesFileName);
     }
 
     private void givenTaskFactoryWithNoExcludes() {
-        target = new ProjectTaskFactory(project, Collections.emptySet(), NOPLogger.NOP_LOGGER, tempDir.toFile());
+        target = new ProjectTaskFactory(project, NOPLogger.NOP_LOGGER, tempDir.toFile());
         target.setPassesFile(verifyInstrumentationOptions.passesFileName);
     }
 

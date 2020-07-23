@@ -50,13 +50,11 @@ public class ProjectTaskFactory {
     }
 
     @SuppressWarnings("ConstantConditions") // I don't trust that the annotations will actually be respected.
-    public ProjectTaskFactory(@Nonnull Project project, @Nonnull Collection<String> excludeVersions, Logger logger, File destinationDir) {
+    public ProjectTaskFactory(@Nonnull Project project, Logger logger, File destinationDir) {
         if (project == null) {
             throw new NullPointerException("project must not be null");
         }
-        if (excludeVersions == null) {
-            throw new NullPointerException("excludeVersions must not be null");
-        }
+
 
         this.logger = logger;
         this.project = project;
