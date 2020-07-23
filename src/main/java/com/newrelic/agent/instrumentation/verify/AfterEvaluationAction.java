@@ -98,7 +98,7 @@ public class AfterEvaluationAction implements Action<Project> {
      *
      * Useful in the evaluate phase to add dependencies before the execution phase for only the projects we will actually verify.
      */
-    static boolean projectRequiresVerification(Project project) {
+    public boolean projectRequiresVerification(Project project) {
         return project.getGradle().getStartParameter().getTaskNames().stream()
                 .filter(taskName -> taskName.endsWith(VERIFIER_TASK_NAME))
                 .map(taskName -> getProjectPath(project, taskName))
@@ -106,7 +106,7 @@ public class AfterEvaluationAction implements Action<Project> {
                 .anyMatch(projectName -> project.getProjectDir().getPath().startsWith(projectName));
     }
 
-    private static String getProjectPath(Project project, String taskName) {
+    private String getProjectPath(Project project, String taskName) {
         String projectWithVerifyDir = taskName.replaceFirst(":?" + VERIFIER_TASK_NAME + "$", "").replaceFirst("^:*", ":");
         if (projectWithVerifyDir.equals(":")) {
             return project.getGradle().getStartParameter().getCurrentDir().getPath();
