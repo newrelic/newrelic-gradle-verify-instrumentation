@@ -17,7 +17,7 @@ public class VerificationPlugin implements Plugin<Project> {
     static final String VERIFIER_TASK_NAME = "verifyInstrumentation";
 
     @OutputDirectory
-    File destinationDir = null;
+    File passesFileDir = null;
 
     /**
      * Apply this plugin to the given target object.
@@ -26,20 +26,20 @@ public class VerificationPlugin implements Plugin<Project> {
      */
     @Override
     public void apply(Project target) {
-        VerifyInstrumentationOptions verifyInstrumentation = target.getExtensions().create(VERIFIER_TASK_NAME, VerifyInstrumentationOptions.class);
+        VerifyInstrumentationOptions verifyOptions = target.getExtensions().create(VERIFIER_TASK_NAME, VerifyInstrumentationOptions.class);
 
-        Task verifyCapstoneTask = target.task(VERIFIER_TASK_NAME);
+        Task verifyInstrumentationTask = target.task(VERIFIER_TASK_NAME);
 
-        if (verifyInstrumentation.passesFileName == null || verifyInstrumentation.passesFileName.isEmpty()) {
-            destinationDir = new File(target.getBuildDir(), "verifier");
-            destinationDir.mkdir();
+        if (verifyOptions.passesFileName == null || verifyOptions.passesFileName.isEmpty()) {
+            passesFileDir = new File(target.getBuildDir(), "verifier");
+            passesFileDir.mkdir();
         }
 
         target.afterEvaluate(new AfterEvaluationAction(
-                verifyInstrumentation,
-                verifyCapstoneTask,
+                verifyOptions,
+                verifyInstrumentationTask,
                 target.getLogger(),
-                destinationDir));
+                passesFileDir));
     }
 
 }

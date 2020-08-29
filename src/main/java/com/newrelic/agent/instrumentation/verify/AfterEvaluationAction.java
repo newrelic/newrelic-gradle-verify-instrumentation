@@ -23,24 +23,24 @@ import java.util.stream.Stream;
 import static com.newrelic.agent.instrumentation.verify.VerificationPlugin.VERIFIER_TASK_NAME;
 
 public class AfterEvaluationAction implements Action<Project> {
-    private VerifyInstrumentationOptions options;
-    private Task verifyCapstoneTask;
+    private VerifyInstrumentationOptions verifyOptions;
+    private Task verifyInstrumentationTask;
     private final Logger logger;
-    private final File destinationDir;
+    private final File passesFileDir;
     //this is for testing
     private final Function<Project, List<RemoteRepository>> getRepositoriesFunction;
 
 
-    AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir) {
-        this(options, verifyCapstoneTask, logger, destinationDir, MavenProjectUtil::getMavenRepositories);
+    AfterEvaluationAction(VerifyInstrumentationOptions verifyOptions, Task verifyInstrumentationTask, Logger logger, File passesFileDir) {
+        this(verifyOptions, verifyInstrumentationTask, logger, passesFileDir, MavenProjectUtil::getMavenRepositories);
     }
 
     //this is for testing
-    AfterEvaluationAction(VerifyInstrumentationOptions options, Task verifyCapstoneTask, Logger logger, File destinationDir, Function<Project, List<RemoteRepository>> getRepositoriesFunction) {
-        this.options = options;
-        this.verifyCapstoneTask = verifyCapstoneTask;
+    AfterEvaluationAction(VerifyInstrumentationOptions verifyOptions, Task verifyInstrumentationTask, Logger logger, File passesFileDir, Function<Project, List<RemoteRepository>> getRepositoriesFunction) {
+        this.verifyOptions = verifyOptions;
+        this.verifyInstrumentationTask = verifyInstrumentationTask;
         this.logger = logger;
-        this.destinationDir = destinationDir;
+        this.passesFileDir = passesFileDir;
         this.getRepositoriesFunction = getRepositoriesFunction;
     }
 
@@ -56,12 +56,12 @@ public class AfterEvaluationAction implements Action<Project> {
             return;
         }
 
-        if (options.passesOnly().size() + options.passes().size() == 0) {
+        if (verifyOptions.passesOnly().size() + verifyOptions.passes().size() == 0) {
             logger.info("Nothing to do - 'passesOnly' or 'passes' is required.");
             return;
         }
 
-        if (options.passesOnly().size() > 0 == options.passes().size() > 0) {
+        if (verifyOptions.passesOnly().size() > 0 == verifyOptions.passes().size() > 0) {
             throw new GradleException("'passesOnly' cannot be specified with 'passes'.");
         }
 
@@ -70,27 +70,27 @@ public class AfterEvaluationAction implements Action<Project> {
         List<RemoteRepository> mavenRepositories = getRepositoriesFunction.apply(project);
 
         // create collection of excludes
-        Set<String> excludedVersions = buildExcludedVersions(options, mavenRepositories, MavenClient.INSTANCE);
+        Set<String> excludedVersions = buildExcludedVersions(verifyOptions, mavenRepositories, MavenClient.INSTANCE);
 
-        ProjectTaskFactory taskFactory = new ProjectTaskFactory(project, excludedVersions, logger, destinationDir);
-        taskFactory.setPassesFile(options.passesFileName);
+        ProjectTaskFactory taskFactory = new ProjectTaskFactory(project, excludedVersions, logger, passesFileDir);
+        taskFactory.setPassesFile(verifyOptions.passesFileName);
 
         // Configuration to download/reference the agent.
-        createProjectDependencyOnAgent(project, options.getNrAgent());
+        createProjectDependencyOnAgent(project, verifyOptions.getNrAgent());
 
-        Stream<? extends Task> classPathTasks = options.verifyClasspath
+        Stream<? extends Task> classPathTasks = verifyOptions.verifyClasspath
                 ? taskFactory.buildClasspathTasks()
                 : Stream.empty();
 
         // create verification task for version ranges
-        Stream<Task> passFailTasks = (options.passesOnly().size() > 0)
-                ? taskFactory.buildTasksForPassesOnly(options)
-                : taskFactory.buildExplicitPassFailTasks(options);
+        Stream<Task> passFailTasks = (verifyOptions.passesOnly().size() > 0)
+                ? taskFactory.buildTasksForPassesOnly(verifyOptions)
+                : taskFactory.buildExplicitPassFailTasks(verifyOptions);
 
-        verifyCapstoneTask.dependsOn(project.getTasks().getByName("jar"));
+        verifyInstrumentationTask.dependsOn(project.getTasks().getByName("jar"));
 
         Stream.concat(classPathTasks, passFailTasks)
-                .forEach(verifyCapstoneTask::finalizedBy);
+                .forEach(verifyInstrumentationTask::finalizedBy);
     }
 
     /**
@@ -131,10 +131,10 @@ public class AfterEvaluationAction implements Action<Project> {
     }
 
     @VisibleForTesting
-    public Set<String> buildExcludedVersions(VerifyInstrumentationOptions verifyInstrumentation, List<RemoteRepository> mavenRepositories, MavenClient mavenClient) {
-        Set<String> excludedVersions = new HashSet<>(verifyInstrumentation.excludeRegex());
+    public Set<String> buildExcludedVersions(VerifyInstrumentationOptions verifyOptions, List<RemoteRepository> mavenRepositories, MavenClient mavenClient) {
+        Set<String> excludedVersions = new HashSet<>(verifyOptions.excludeRegex());
 
-        Set<String> resolvedExclusions = verifyInstrumentation.exclude().stream()
+        Set<String> resolvedExclusions = verifyOptions.exclude().stream()
                 .flatMap((String excludeRange) ->
                         mavenClient.resolveAvailableVersions(excludeRange, mavenRepositories).stream()
                                 .peek(dep -> logger.info("Excluding artifact: " + dep)))

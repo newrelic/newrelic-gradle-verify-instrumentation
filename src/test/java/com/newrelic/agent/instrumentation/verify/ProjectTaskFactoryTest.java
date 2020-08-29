@@ -225,40 +225,40 @@ class ProjectTaskFactoryTest {
                     .add(VERIFIER_TASK_NAME, project.files("/not/real/newrelic-agent.jar"));
         }
 
-         verifyInstrumentationOptions = new VerifyInstrumentationOptions();
+         verifyOptions = new VerifyInstrumentationOptions();
     }
 
     private void givenTaskFactoryExcludingVersionTwo() {
         target = new ProjectTaskFactory(project, Collections.singletonList("foo:bar:2.0"), NOPLogger.NOP_LOGGER, tempDir.toFile());
-        target.setPassesFile(verifyInstrumentationOptions.passesFileName);
+        target.setPassesFile(verifyOptions.passesFileName);
     }
 
     private void givenTaskFactoryWithNoExcludes() {
         target = new ProjectTaskFactory(project, Collections.emptySet(), NOPLogger.NOP_LOGGER, tempDir.toFile());
-        target.setPassesFile(verifyInstrumentationOptions.passesFileName);
+        target.setPassesFile(verifyOptions.passesFileName);
     }
 
     private void givenThePassesFileOptionIsSet() {
-        verifyInstrumentationOptions.passesFileName = "/tmp/garbage/foo/don-t-worry.txt";
+        verifyOptions.passesFileName = "/tmp/garbage/foo/don-t-worry.txt";
     }
 
     private void givenVersionsOneToThreeArePassesOnly() {
-        verifyInstrumentationOptions.passesOnly("foo:bar:[1.0,3.0)");
+        verifyOptions.passesOnly("foo:bar:[1.0,3.0)");
     }
 
     private void givenVersionsOneToThreeArePassesOnlyAndTwoPointOneIsFails() {
-        verifyInstrumentationOptions.passesOnly("foo:bar:[1.0,3.0)");
-        verifyInstrumentationOptions.fails("foo:bar:2.1");
+        verifyOptions.passesOnly("foo:bar:[1.0,3.0)");
+        verifyOptions.fails("foo:bar:2.1");
     }
 
     private void givenVersionsOneToThreeArePassesOnlyAndTwoIsFails() {
-        verifyInstrumentationOptions.passesOnly("foo:bar:[1.0,3.0)");
-        verifyInstrumentationOptions.fails("foo:bar:2.0");
+        verifyOptions.passesOnly("foo:bar:[1.0,3.0)");
+        verifyOptions.fails("foo:bar:2.0");
     }
 
     private void givenVersionsOneToThreeArePassesAndPastThreeAreFails() {
-        verifyInstrumentationOptions.passes("foo:bar:[1.0,3.0)");
-        verifyInstrumentationOptions.fails("foo:bar:[3.0,)");
+        verifyOptions.passes("foo:bar:[1.0,3.0)");
+        verifyOptions.fails("foo:bar:[3.0,)");
     }
 
     private void thenTasksLogToDefaultFiles() {
@@ -307,11 +307,11 @@ class ProjectTaskFactoryTest {
     }
 
     private void whenPassFailTasksAreBuilt() {
-        resultTasks = target.buildExplicitPassFailTasks(verifyInstrumentationOptions);
+        resultTasks = target.buildExplicitPassFailTasks(verifyOptions);
     }
 
     private void whenPassesOnlyTasksAreBuilt() {
-        resultTasks = target.buildTasksForPassesOnly(verifyInstrumentationOptions);
+        resultTasks = target.buildTasksForPassesOnly(verifyOptions);
     }
 
     private void whenClasspathTaskIsBuilt() {
@@ -384,7 +384,7 @@ class ProjectTaskFactoryTest {
 
     private <T extends Throwable> void thenPassesOnlyTasksFailToBuild(Class<T> exceptionClass) {
         assertThrows(exceptionClass, () -> {
-            Set<? extends Task> actualTasks = target.buildTasksForPassesOnly(verifyInstrumentationOptions).collect(Collectors.toSet());
+            Set<? extends Task> actualTasks = target.buildTasksForPassesOnly(verifyOptions).collect(Collectors.toSet());
             // for easy breakpoint; we should never get here.
             assertEquals(0, actualTasks.size());
         });
@@ -406,7 +406,7 @@ class ProjectTaskFactoryTest {
 
     private Stream<? extends Task> resultTasks;
     private ProjectTaskFactory target;
-    private VerifyInstrumentationOptions verifyInstrumentationOptions;
+    private VerifyInstrumentationOptions verifyOptions;
     private Project project;
     private MavenClient savedClient;
 

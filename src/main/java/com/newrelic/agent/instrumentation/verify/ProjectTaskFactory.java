@@ -38,7 +38,7 @@ import static org.gradle.api.Task.TASK_TYPE;
 public class ProjectTaskFactory {
     private static final String CLASSPATH_DEP_NAME = "classpath";
     private final Logger logger;
-    private final File destinationDir;
+    private final File passesFileDir;
 
     private Project project;
     private Collection<Pattern> excludeVersions;
@@ -50,7 +50,7 @@ public class ProjectTaskFactory {
     }
 
     @SuppressWarnings("ConstantConditions") // I don't trust that the annotations will actually be respected.
-    public ProjectTaskFactory(@Nonnull Project project, @Nonnull Collection<String> excludeVersions, Logger logger, File destinationDir) {
+    public ProjectTaskFactory(@Nonnull Project project, @Nonnull Collection<String> excludeVersions, Logger logger, File passesFileDir) {
         if (project == null) {
             throw new NullPointerException("project must not be null");
         }
@@ -61,7 +61,7 @@ public class ProjectTaskFactory {
         this.logger = logger;
         this.project = project;
         this.excludeVersions = excludeVersions.stream().map(Pattern::compile).collect(Collectors.toList());
-        this.destinationDir = destinationDir;
+        this.passesFileDir = passesFileDir;
 
         mavenRepositories = MavenProjectUtil.getMavenRepositories(project);
     }
@@ -82,10 +82,10 @@ public class ProjectTaskFactory {
      * <p>NOTE: There is no checking that you don't have the same version in
      * "passes" and "fails". However, one of the tasks will fail.</p>
      */
-    Stream<Task> buildExplicitPassFailTasks(VerifyInstrumentationOptions verifyInstrumentation) {
+    Stream<Task> buildExplicitPassFailTasks(VerifyInstrumentationOptions verifyOptions) {
         return Stream.concat(
-                expandMapToTasks(verifyInstrumentation.passes(), true),
-                expandMapToTasks(verifyInstrumentation.fails(), false)
+                expandMapToTasks(verifyOptions.passes(), true),
+                expandMapToTasks(verifyOptions.fails(), false)
         );
     }
 
@@ -111,18 +111,18 @@ public class ProjectTaskFactory {
      * <p>The lowest level of precedence of task is the implicit fail. Versions in the same group
      * and name as, but not included in, the "passesOnly" will be checked for failure.</p>
      */
-    Stream<Task> buildTasksForPassesOnly(VerifyInstrumentationOptions verifyInstrumentation) {
+    Stream<Task> buildTasksForPassesOnly(VerifyInstrumentationOptions verifyOptions) {
         final Set<String> passOnlyVersions = new HashSet<>();
         final Set<String> explicitFails = new HashSet<>();
 
         // first build the explicit failures ... these take precedence.
-        Stream<VerifyTask> explicitFailStream = expandMapToTasks(verifyInstrumentation.fails(), false);
+        Stream<VerifyTask> explicitFailStream = expandMapToTasks(verifyOptions.fails(), false);
         Collection<Task> explicitTasks = explicitFailStream
                 .peek(task -> explicitFails.add(task.getParameters().getOriginalDependency()))
                 .collect(Collectors.toSet());
 
         // add all the passes. We need to collect() so that the stream runs and we can see if we got results.
-        Collection<Task> passOnlyTasks = verifyInstrumentation.passesOnly().entrySet().stream().flatMap(entry ->
+        Collection<Task> passOnlyTasks = verifyOptions.passesOnly().entrySet().stream().flatMap(entry ->
                 MavenClient.INSTANCE.resolveAvailableVersions(entry.getKey(), mavenRepositories).stream()
                         .filter(version -> {
                             if (explicitFails.contains(version)) {
@@ -141,7 +141,7 @@ public class ProjectTaskFactory {
 
         if (passOnlyVersions.size() == 0) {
             throw new GradleException("Invalid passesOnly verification - no versions found for " +
-                    verifyInstrumentation.passesOnly().keySet());
+                    verifyOptions.passesOnly().keySet());
         }
 
         explicitTasks.addAll(passOnlyTasks);
@@ -209,9 +209,9 @@ public class ProjectTaskFactory {
                 .setShouldSuccessfullyApply(shouldSuccessfullyApply)
                 .setPrintSuccess(project.hasProperty("printSuccess"))
                 .setClasspathJars(configFiles)
-                .setVerifierFailures(outputContent, project.file(destinationDir + "/failures.txt"))
+                .setVerifierFailures(outputContent, project.file(passesFileDir + "/failures.txt"))
                 .setVerifierPasses(outputContent, this.passesFile == null
-                        ? project.file(destinationDir + "/passes.txt")
+                        ? project.file(passesFileDir + "/passes.txt")
                         : this.passesFile);
 
         // Pass the required parameters to the `VerifyTask`

@@ -26,16 +26,16 @@ class VerifierTest {
     private Function<Project, List<RemoteRepository>> getRepositoryFunction;
 
     @Mock
-    public Task mockTask;
+    public Task mockVerifyInstrumentationTask;
 
     @Mock
-    public File mockDestinationDir;
+    public File mockPassesFileDir;
 
     @Mock
     public Logger mockLogger;
 
     @Mock
-    public VerifyInstrumentationOptions mockOptions;
+    public VerifyInstrumentationOptions mockVerifyOptions;
 
     @Test
     void testVerifierTaskAdded() {
@@ -50,7 +50,7 @@ class VerifierTest {
     void testAddDependenciesForVerifierTasks() {
         MockitoAnnotations.initMocks(this);
         this.getRepositoryFunction = {project -> Collections.emptyList()};
-        this.testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, getRepositoryFunction);
+        this.testClass = new AfterEvaluationAction(mockVerifyOptions, mockVerifyInstrumentationTask, mockLogger, mockPassesFileDir, getRepositoryFunction);
         Project root = ProjectBuilder.builder().withName("root").build()
         Project sub1 = ProjectBuilder.builder().withName("sub1").withParent(root).build()
         Project subsub1 = ProjectBuilder.builder().withName("subsub1").withParent(sub1).build()

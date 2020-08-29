@@ -10,9 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Answers;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.mockito.internal.matchers.Any;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -34,23 +32,23 @@ class AfterEvaluationActionTest {
     void beforeEach() {
         MockitoAnnotations.initMocks(this);
         this.getRepositoryFunction = project -> Collections.emptyList();
-        this.testClass = new AfterEvaluationAction(mockOptions, mockTask, mockLogger, mockDestinationDir, getRepositoryFunction);
+        this.testClass = new AfterEvaluationAction(mockVerifyOptions, mockVerifyInstrumentationTask, mockLogger, mockPassesFileDir, getRepositoryFunction);
     }
 
     @Mock(answer = Answers.RETURNS_DEEP_STUBS)
     public Project mockProject;
 
     @Mock
-    public Task mockTask;
+    public Task mockVerifyInstrumentationTask;
 
     @Mock
-    public File mockDestinationDir;
+    public File mockPassesFileDir;
 
     @Mock
     public Logger mockLogger;
 
     @Mock
-    public VerifyInstrumentationOptions mockOptions;
+    public VerifyInstrumentationOptions mockVerifyOptions;
 
 
     @Test
@@ -127,12 +125,12 @@ class AfterEvaluationActionTest {
         Set<String> resolvedExcludedVersions = new HashSet<String>();
         Collections.addAll(resolvedExcludedVersions, "test:1.0", "test:2.0", "test:3.0");
 
-        when(mockOptions.excludeRegex()).thenReturn(excludeRegex);
-        when(mockOptions.exclude()).thenReturn(resolvedExcludedVersions);
+        when(mockVerifyOptions.excludeRegex()).thenReturn(excludeRegex);
+        when(mockVerifyOptions.exclude()).thenReturn(resolvedExcludedVersions);
         when(mockMavenClient.resolveAvailableVersions(anyString(), anyList()))
                 .thenReturn(resolvedExcludedVersions);
 
-        Set<String> result = testClass.buildExcludedVersions(mockOptions, getRepositoryFunction.apply(mockProject), mockMavenClient);
+        Set<String> result = testClass.buildExcludedVersions(mockVerifyOptions, getRepositoryFunction.apply(mockProject), mockMavenClient);
         //merge sets to produce expected
         resolvedExcludedVersions.addAll(excludeRegex);
 
