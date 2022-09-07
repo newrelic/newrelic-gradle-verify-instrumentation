@@ -18,14 +18,14 @@ java {
 
 dependencies {
     implementation("org.apache.maven:maven-resolver-provider:3.6.1")
-    implementation("com.google.guava:guava:28.2-jre")
-    implementation("org.apache.maven.resolver:maven-resolver-transport-http:1.4.2")
+    implementation("com.google.guava:guava:30.0-jre")
+    implementation("org.apache.maven.resolver:maven-resolver-transport-http:1.7.0")
     implementation("org.apache.maven.resolver:maven-resolver-transport-file:1.4.2")
     implementation("org.apache.maven.resolver:maven-resolver-connector-basic:1.4.2")
     implementation("commons-codec:commons-codec:1.14")
 
     // test deps
-    testImplementation("org.codehaus.groovy:groovy:2.5.10")
+    testImplementation("org.codehaus.groovy:groovy:2.5.14")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.1")
     testImplementation("org.mockito:mockito-core:2.28.2")
