@@ -141,7 +141,7 @@ class VerifierTest {
                     passesTasks.stream().map({task -> task.name}).collect(Collectors.toSet())
             )
         }
-        // ..evaluate() is broken starting on Gradle version 7.3
+        // ..evaluate() is broken starting on Gradle version 7.3 https://github.com/gradle/gradle/issues/20301
         myproject.evaluate()
     }
 
