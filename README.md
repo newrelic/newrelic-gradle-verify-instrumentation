@@ -17,13 +17,15 @@ What do you need to make this work?
 ====================================
 
 Required: 
-* Gradle, minimum 5.6
+* Gradle, minimum 7.2
 * Java 11
 
 Java Runtime
 ====================================
 
-Most Java agent instrumentation modules are compiled to target Java 8+ however some are compiled to target Java 11+. The verifier must be run with a minimum Java runtime of 11 or it will fail when trying to verify instrumentation targeting Java 11+.
+Most Java agent instrumentation modules are compiled to target Java 8+ however some are compiled to target Java 11+. 
+The verifier must be run with a minimum Java runtime of 11 or it will fail when trying to verify instrumentation 
+targeting Java 11+.
 
 Start using the plugin
 ====================================

@@ -107,7 +107,6 @@ class VerifierTest {
         myproject.gradle.startParameter.setTaskNames(["verifyInstrumentation"])
         myproject.gradle.startParameter.setCurrentDir(myproject.getProjectDir())
         myproject.configurations.implementation.setCanBeResolved(true)
-//        myproject.configurations.api.setCanBeResolved(true)
 
         MavenClient.INSTANCE = new MavenClient() {
             @Override
@@ -142,6 +141,7 @@ class VerifierTest {
                     passesTasks.stream().map({task -> task.name}).collect(Collectors.toSet())
             )
         }
+        // ..evaluate() is broken starting on Gradle version 7.3
         myproject.evaluate()
     }
 
