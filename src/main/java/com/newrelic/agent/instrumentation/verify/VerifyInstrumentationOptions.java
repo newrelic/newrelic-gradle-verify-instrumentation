@@ -36,7 +36,7 @@ public class VerifyInstrumentationOptions {
      * @param dependencyRangeSpec A range like "group:name:[1.5,3.4)" or a single version.
      * @param compileSpecAction Used to define compile dependencies for verification.
      */
-    public void passes(String dependencyRangeSpec, Action<CompileSpec> compileSpecAction) {
+    public void passes(String dependencyRangeSpec, Action<ImplementationSpec> compileSpecAction) {
         checkDependencySpec(dependencyRangeSpec);
         passSpecs.put(dependencyRangeSpec, getCompileDependencies(compileSpecAction));
     }
@@ -71,7 +71,7 @@ public class VerifyInstrumentationOptions {
      * @param dependencyRangeSpec A range like "group:name:[1.5,3.4)" or a single version.
      * @param compileSpecAction Used to define compile dependencies for verification.
      */
-    public void passesOnly(String dependencyRangeSpec, Action<CompileSpec> compileSpecAction) {
+    public void passesOnly(String dependencyRangeSpec, Action<ImplementationSpec> compileSpecAction) {
         checkDependencySpec(dependencyRangeSpec);
         passOnlySpecs.put(dependencyRangeSpec, getCompileDependencies(compileSpecAction));
     }
@@ -105,7 +105,7 @@ public class VerifyInstrumentationOptions {
      * @param dependencyRangeSpec A range like "group:name:[1.5,3.4)" or a single version.
      * @param compileSpecAction Used to define compile dependencies for verification.
      */
-    public void fails(String dependencyRangeSpec, Action<CompileSpec> compileSpecAction) {
+    public void fails(String dependencyRangeSpec, Action<ImplementationSpec> compileSpecAction) {
         checkDependencySpec(dependencyRangeSpec);
         failSpecs.put(dependencyRangeSpec, getCompileDependencies(compileSpecAction));
     }
@@ -202,10 +202,10 @@ public class VerifyInstrumentationOptions {
 
     private Object nrAgent = "com.newrelic.agent.java:newrelic-agent:+";
 
-    private Collection<String> getCompileDependencies(Action<CompileSpec> compileSpecAction) {
-        CompileSpec spec = new CompileSpec();
+    private Collection<String> getCompileDependencies(Action<ImplementationSpec> compileSpecAction) {
+        ImplementationSpec spec = new ImplementationSpec();
         compileSpecAction.execute(spec);
-        return spec.getCompileDependencies();
+        return spec.getImplementationDependencies();
     }
 
     private final Map<String, Collection<String>> passSpecs = new HashMap<>();

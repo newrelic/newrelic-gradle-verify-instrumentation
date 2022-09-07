@@ -15,8 +15,8 @@ class VerifyInstrumentationOptionsTest {
     void testPasses() {
         VerifyInstrumentationOptions verifyInstrumentation = new VerifyInstrumentationOptions()
         verifyInstrumentation.passes('foo:foo:1.0') {
-            it.compile('fooDep1:foo:1.0')
-            it.compile'fooDep2:foo:1.0'
+            it.implementation('fooDep1:foo:1.0')
+            it.implementation'fooDep2:foo:1.0'
         }
         verifyInstrumentation.passes("bar:foo:1.0")
         verifyInstrumentation.passes "baz:foo:1.0"
@@ -33,8 +33,8 @@ class VerifyInstrumentationOptionsTest {
     void testFails() {
         VerifyInstrumentationOptions verifyInstrumentation = new VerifyInstrumentationOptions()
         verifyInstrumentation.fails('foo:foo:1.0') {
-            it.compile('fooDep1:foo:1.0')
-            it.compile 'fooDep2:foo:1.0'
+            it.implementation('fooDep1:foo:1.0')
+            it.implementation 'fooDep2:foo:1.0'
         }
         verifyInstrumentation.fails('bar:foo:1.0')
         verifyInstrumentation.fails 'baz:foo:1.0'
@@ -51,8 +51,8 @@ class VerifyInstrumentationOptionsTest {
     void testPassesOnly() {
         VerifyInstrumentationOptions verifyInstrumentation = new VerifyInstrumentationOptions()
         verifyInstrumentation.passesOnly('foo:foo:1.0') {
-            it.compile('fooDep1:foo:1.0')
-            it.compile 'fooDep2:foo:1.0'
+            it.implementation('fooDep1:foo:1.0')
+            it.implementation 'fooDep2:foo:1.0'
         }
         verifyInstrumentation.passesOnly('bar:foo:1.0')
         verifyInstrumentation.passesOnly 'baz:foo:1.0'
