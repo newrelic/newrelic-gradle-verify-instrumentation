@@ -68,10 +68,7 @@ public class ProjectTaskFactory {
 
     Stream<? extends Task> buildClasspathTasks() {
         Collection<Dependency> dependencies =
-                Stream.concat(
-                        project.getConfigurations().getByName("compile").getAllDependencies().stream(),
-                        project.getConfigurations().getByName("implementation").getAllDependencies().stream()
-                ).collect(Collectors.toSet());
+                        project.getConfigurations().getByName("implementation").getAllDependencies();
 
         return addVerifyTask(CLASSPATH_DEP_NAME, true, dependencies, null);
     }

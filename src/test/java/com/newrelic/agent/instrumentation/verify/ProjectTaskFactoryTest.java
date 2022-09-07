@@ -214,7 +214,7 @@ class ProjectTaskFactoryTest {
         List<ProjectTweaks> tweakList = Arrays.asList(tweaks);
         if (!tweakList.contains(ProjectTweaks.WITHOUT_JAVA_PLUGIN)) {
             project.getPluginManager().apply("java");
-            project.getDependencies().add("compile", "foo:bar:2.3");
+            project.getDependencies().add("implementation", "foo:bar:2.3");
             project.getDependencies().add("implementation", "foo:baz:10.4.5");
         }
 

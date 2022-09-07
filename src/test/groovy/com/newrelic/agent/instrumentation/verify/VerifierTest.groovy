@@ -106,6 +106,8 @@ class VerifierTest {
         assertNotNull(myproject.tasks.verifyInstrumentation)
         myproject.gradle.startParameter.setTaskNames(["verifyInstrumentation"])
         myproject.gradle.startParameter.setCurrentDir(myproject.getProjectDir())
+        myproject.configurations.implementation.setCanBeResolved(true)
+//        myproject.configurations.api.setCanBeResolved(true)
 
         MavenClient.INSTANCE = new MavenClient() {
             @Override
@@ -120,15 +122,15 @@ class VerifierTest {
                 return []
             }
         }
-        myproject.configure(myproject.configurations.compile) {
-            compile 'classpathdep:one:1.0'
+        myproject.configure(myproject.configurations.implementation) {
+            implementation 'classpathdep:one:1.0'
         }
         myproject.configure((Object)myproject.extensions.verifyInstrumentation) {
             nrAgent = new File('/not/real/newrelic-agent.jar')
             verifyClasspath = true
 
             passesOnly('foo:bar:[1.0,3.0)') {
-                compile 'biz:wiz:3'
+                implementation 'biz:wiz:3'
             }
         }
 
