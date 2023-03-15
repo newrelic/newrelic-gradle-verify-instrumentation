@@ -18,14 +18,14 @@ What do you need to make this work?
 
 Required: 
 * Gradle, minimum 7.2
-* Java 11
+* Java 17
 
 Java Runtime
 ====================================
 
-Most Java agent instrumentation modules are compiled to target Java 8+ however some are compiled to target Java 11+. 
-The verifier must be run with a minimum Java runtime of 11 or it will fail when trying to verify instrumentation 
-targeting Java 11+.
+Most Java agent instrumentation modules are compiled to target Java 8+. However, some modules are compiled to target Java 11 and others require Java 17. 
+The verifier must be run with a minimum Java runtime of 17 because it will fail when trying to verify instrumentation 
+targeting Java 17 when running all modules from the same runtime. Of course, when running individual modules the runtime can be whatever version the given module requires.
 
 Start using the plugin
 ====================================
@@ -133,12 +133,12 @@ Or:
 
 ## Additional Dependencies
 
-By default, the Maven library is verified with its transitive dependencies. To specify additional dependencies while verifying, add a configuration closure and use 'compile'.
+By default, the Maven library is verified with its transitive dependencies. To specify additional dependencies while verifying, add a configuration closure and use 'implementation'.
 
 ```gradle
 verifyInstrumentation {
   passesOnly("io.spray:spray-routing_2.11:[1.3.1,)") {
-    compile("com.typesafe.akka:akka-actor_2.11:2.3.14") // akka is not explicitly listed as a spray dependency so we have to tell the verifier to include it.
+    implementation("com.typesafe.akka:akka-actor_2.11:2.3.14") // akka is not explicitly listed as a spray dependency so we have to tell the verifier to include it.
   }
 }
 ```
