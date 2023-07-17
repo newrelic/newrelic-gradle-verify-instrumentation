@@ -157,13 +157,13 @@ Support
 
 New Relic has open-sourced this project. This project is provided AS-IS WITHOUT WARRANTY OR DEDICATED SUPPORT. Report issues and contributions to the project here on GitHub.
 
-We encourage you to bring your experiences and questions to the [Explorers Hub](https://discuss.newrelic.com/) where our community members collaborate on solutions and new ideas.
+We encourage you to bring your experiences and questions to the [Explorers Hub](https://forum.newrelic.com/s/) where our community members collaborate on solutions and new ideas.
 
 Community
 ====================================
 New Relic hosts and moderates an online forum where customers can interact with New Relic employees as well as other customers to get help and share best practices. Like all official New Relic open source projects, there's a related Community topic in the New Relic Explorers Hub. You can find this project's topic/threads here:
 
-https://discuss.newrelic.com/c/support-products-agents/java-agent
+[Java Agent Support Forum](https://forum.newrelic.com/s/?c__categories=%5B%7B%22id%22%3A%22a6c8W000000EesiQAC%22%2C%22isCustomImage%22%3Afalse%2C%22sObjectType%22%3A%22Category__c%22%2C%22subtitle%22%3A%22%22%2C%22title%22%3A%22Java%20Agent%22%2C%22titleFormatted%22%3A%22%3Cstrong%3EJava%3C%2Fstrong%3E%20Agent%22%2C%22subtitleFormatted%22%3A%22%22%2C%22icon%22%3A%22standard%3Adefault%22%7D%5D)
 
 Issues / enhancement requests
 ====================================
