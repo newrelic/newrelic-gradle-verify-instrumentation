@@ -3,11 +3,7 @@ package com.newrelic.agent.instrumentation.verify;
 import org.eclipse.aether.version.Version;
 import org.gradle.api.GradleException;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Collections;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
