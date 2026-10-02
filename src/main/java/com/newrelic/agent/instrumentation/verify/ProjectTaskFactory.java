@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.newrelic.agent.instrumentation.verify.VersionGroupingUtil.GroupingScheme;
 import static org.gradle.api.Task.TASK_TYPE;
 
 public class ProjectTaskFactory {
@@ -44,24 +45,33 @@ public class ProjectTaskFactory {
     private Collection<Pattern> excludeVersions;
     private File passesFile;
     private List<RemoteRepository> mavenRepositories;
+    private final GroupingScheme groupingScheme;
 
     public void setPassesFile(String passesFileName) {
         this.passesFile = passesFileName == null || passesFileName.isEmpty() ? null : project.file(passesFileName);
     }
 
-    @SuppressWarnings("ConstantConditions") // I don't trust that the annotations will actually be respected.
     public ProjectTaskFactory(@Nonnull Project project, @Nonnull Collection<String> excludeVersions, Logger logger, File passesFileDir) {
+        this(project, excludeVersions, logger, passesFileDir, GroupingScheme.ALL);
+    }
+
+    @SuppressWarnings("ConstantConditions") // I don't trust that the annotations will actually be respected.
+    public ProjectTaskFactory(@Nonnull Project project, @Nonnull Collection<String> excludeVersions, Logger logger, File passesFileDir, @Nonnull GroupingScheme groupingScheme) {
         if (project == null) {
             throw new NullPointerException("project must not be null");
         }
         if (excludeVersions == null) {
             throw new NullPointerException("excludeVersions must not be null");
         }
+        if (groupingScheme == null) {
+            throw new NullPointerException("groupingScheme must not be null");
+        }
 
         this.logger = logger;
         this.project = project;
         this.excludeVersions = excludeVersions.stream().map(Pattern::compile).collect(Collectors.toList());
         this.passesFileDir = passesFileDir;
+        this.groupingScheme = groupingScheme;
 
         mavenRepositories = MavenProjectUtil.getMavenRepositories(project);
     }
@@ -86,11 +96,13 @@ public class ProjectTaskFactory {
         );
     }
 
+    // explicit fails and passes SHOULD ignore the user-defined groupingScheme and always verify ALL versions in the range.
+    // we have to assume explicit fails are there for a reason and every version should be checked.
     private Stream<VerifyTask> expandMapToTasks(Map<String, Collection<String>> entries, boolean shouldSuccessfullyApply) {
         return entries.entrySet().stream()
                 .peek(entry -> logger.info("Resolving range: " + entry.getKey()))
                 .flatMap(entry ->
-                        MavenClient.INSTANCE.resolveAvailableVersions(entry.getKey(), mavenRepositories).stream()
+                        MavenClient.INSTANCE.resolveAvailableVersions(entry.getKey(), mavenRepositories, GroupingScheme.ALL).stream()
                                 .peek(version -> logger.info("--Resolving: " + version))
                                 .flatMap(version -> addVerifyTask(version, shouldSuccessfullyApply, entry.getValue(), entry.getKey())));
     }
@@ -119,8 +131,9 @@ public class ProjectTaskFactory {
                 .collect(Collectors.toSet());
 
         // add all the passes. We need to collect() so that the stream runs and we can see if we got results.
+        // passesOnly SHOULD use the user-defined groupingScheme.
         Collection<Task> passOnlyTasks = verifyOptions.passesOnly().entrySet().stream().flatMap(entry ->
-                MavenClient.INSTANCE.resolveAvailableVersions(entry.getKey(), mavenRepositories).stream()
+                MavenClient.INSTANCE.resolveAvailableVersions(entry.getKey(), mavenRepositories, groupingScheme).stream()
                         .filter(version -> {
                             if (explicitFails.contains(version)) {
                                 logger.info(
@@ -161,8 +174,9 @@ public class ProjectTaskFactory {
                 .flatMap(fullRange -> buildImplicitFailTasksForRange(fullRange, passOnlyVersions, explicitFails));
     }
 
+    //Implicit fails SHOULD use the user-defined groupingScheme.
     private Stream<Task> buildImplicitFailTasksForRange(String fullRange, Set<String> passOnlyVersions, Set<String> explicitFails) {
-        return MavenClient.INSTANCE.resolveAvailableVersions(fullRange, mavenRepositories).stream()
+        return MavenClient.INSTANCE.resolveAvailableVersions(fullRange, mavenRepositories, groupingScheme).stream()
                 .filter(version -> !passOnlyVersions.contains(version) && !explicitFails.contains(version))
                 .peek(version -> logger.info("Resolving: {}", version))
                 .flatMap(version -> addVerifyTask(version, false, Collections.emptyList(), fullRange));

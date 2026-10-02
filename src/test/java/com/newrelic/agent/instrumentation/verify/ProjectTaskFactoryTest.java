@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.newrelic.agent.instrumentation.verify.VerificationPlugin.VERIFIER_TASK_NAME;
+import static com.newrelic.agent.instrumentation.verify.VersionGroupingUtil.GroupingScheme;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -163,7 +164,7 @@ class ProjectTaskFactoryTest {
     private void givenMavenClientReturnsNoResults() {
         MavenClient.INSTANCE = new MavenClient() {
             @Override
-            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories) {
+            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
                 return Collections.emptyList();
             }
         };
@@ -172,7 +173,7 @@ class ProjectTaskFactoryTest {
     private void givenMavenClientReturnsVersionsOutsidePassRange() {
         MavenClient.INSTANCE = new MavenClient() {
             @Override
-            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories) {
+            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
                 return (rangeDep.contains(":[0,)")) // implicit fails
                         ? Arrays.asList("foo:bar:0.5", "foo:bar:2.0", "foo:bar:3.3")
                         : Collections.singletonList("foo:bar:2.0"); // passesOnly
@@ -183,7 +184,7 @@ class ProjectTaskFactoryTest {
     private void givenMavenClientReturnsVersionsInsideAndOutsidePassRange() {
         MavenClient.INSTANCE = new MavenClient() {
             @Override
-            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories) {
+            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
                 if (rangeDep.contains(":[0,)")) // implicit fails
                     return Arrays.asList("foo:bar:0.5", "foo:bar:2.0", "foo:bar:2.1", "foo:bar:3.3");
                 else if (rangeDep.contains(":[1.0,3.0)")) // passesOnly
@@ -203,7 +204,7 @@ class ProjectTaskFactoryTest {
     private void givenMavenClientReturnsVersionTwo() {
         MavenClient.INSTANCE = new MavenClient() {
             @Override
-            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories) {
+            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
                 return Collections.singletonList("foo:bar:2.0");
             }
         };
