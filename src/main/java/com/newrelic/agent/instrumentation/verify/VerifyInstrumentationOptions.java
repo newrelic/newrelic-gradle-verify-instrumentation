@@ -9,12 +9,7 @@ import org.gradle.api.Action;
 import org.gradle.api.IllegalDependencyNotation;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class VerifyInstrumentationOptions {
     /**
@@ -164,6 +159,21 @@ public class VerifyInstrumentationOptions {
      * Contains an optional path for a consolidated pass/fail list.
      */
     public String passesFileName = "";
+
+    /**
+     * Controls how the versions resolved for "passesOnly" and the implicit fail range are
+     * condensed before verify tasks are generated for them. Does not affect "passes", "fails",
+     * or "exclude", which always resolve every matching version exactly.
+     *
+     * <p>May be overridden at build invocation time with the "versionGrouping" project
+     * property, e.g. {@code -PversionGrouping=LATEST_MAJOR}. If neither this nor the
+     * project property is set, {@link VersionGroupingUtil.GroupingScheme#ALL} is used.</p>
+     */
+    public VersionGroupingUtil.GroupingScheme versionGrouping = null;
+
+    public void versionGrouping(String scheme) {
+        versionGrouping = VersionGroupingUtil.parse(scheme);
+    }
 
     /**
      * True if the instrumentation should also be checked (in addition to pass/fail) as valid using only
