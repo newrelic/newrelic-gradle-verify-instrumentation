@@ -21,8 +21,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.newrelic.agent.instrumentation.verify.VerificationPlugin.VERIFIER_TASK_NAME;
+import static com.newrelic.agent.instrumentation.verify.VersionGroupingUtil.GroupingScheme;
 
 public class AfterEvaluationAction implements Action<Project> {
+    static final String GROUPING_SCHEME_PROPERTY = "versionGrouping";
+
     private VerifyInstrumentationOptions verifyOptions;
     private Task verifyInstrumentationTask;
     private final Logger logger;
@@ -66,13 +69,16 @@ public class AfterEvaluationAction implements Action<Project> {
         }
 
         // get the repository sources from the user's build.gradle
-
         List<RemoteRepository> mavenRepositories = getRepositoriesFunction.apply(project);
+
+        // Determine the configured grouping scheme for this project
+        GroupingScheme groupingScheme = resolveGroupingScheme(verifyOptions, project);
+        logger.info("This job will verify artifacts according to the grouping scheme: " + groupingScheme.name());
 
         // create collection of excludes
         Set<String> excludedVersions = buildExcludedVersions(verifyOptions, mavenRepositories, MavenClient.INSTANCE);
 
-        ProjectTaskFactory taskFactory = new ProjectTaskFactory(project, excludedVersions, logger, passesFileDir);
+        ProjectTaskFactory taskFactory = new ProjectTaskFactory(project, excludedVersions, logger, passesFileDir, groupingScheme);
         taskFactory.setPassesFile(verifyOptions.passesFileName);
 
         // Configuration to download/reference the agent.
@@ -130,13 +136,35 @@ public class AfterEvaluationAction implements Action<Project> {
         }
     }
 
+    /**
+     * Resolves the {@link GroupingScheme} to use for "passesOnly" and implicit-fail version resolution.
+     *
+     * <p>Precedence: the "versionGrouping" project property (settable via
+     * {@code -PversionGrouping=...} on the command line) takes precedence over the
+     * {@code versionGrouping} configured on the {@code verifyInstrumentation} extension,
+     * which in turn takes precedence over the default, {@link GroupingScheme#ALL}.</p>
+     */
+    @VisibleForTesting
+    public GroupingScheme resolveGroupingScheme(VerifyInstrumentationOptions verifyOptions, Project project) {
+        if (project.hasProperty(GROUPING_SCHEME_PROPERTY)) {
+            String propertyValue = String.valueOf(project.property(GROUPING_SCHEME_PROPERTY));
+            return VersionGroupingUtil.parse(propertyValue);
+        }
+
+        if (verifyOptions.versionGrouping != null) {
+            return verifyOptions.versionGrouping;
+        }
+
+        return GroupingScheme.ALL;
+    }
+
     @VisibleForTesting
     public Set<String> buildExcludedVersions(VerifyInstrumentationOptions verifyOptions, List<RemoteRepository> mavenRepositories, MavenClient mavenClient) {
         Set<String> excludedVersions = new HashSet<>(verifyOptions.excludeRegex());
 
         Set<String> resolvedExclusions = verifyOptions.exclude().stream()
                 .flatMap((String excludeRange) ->
-                        mavenClient.resolveAvailableVersions(excludeRange, mavenRepositories).stream()
+                        mavenClient.resolveAvailableVersions(excludeRange, mavenRepositories, GroupingScheme.ALL).stream()
                                 .peek(dep -> logger.info("Excluding artifact: " + dep)))
                 .collect(Collectors.toSet());
 

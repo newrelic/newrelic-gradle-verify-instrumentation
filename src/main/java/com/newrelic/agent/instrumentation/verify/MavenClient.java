@@ -30,10 +30,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.newrelic.agent.instrumentation.verify.VersionGroupingUtil.*;
+
 public class MavenClient {
     public static MavenClient INSTANCE = new MavenClient();
 
-    public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories) {
+    public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
         Collection<Version> versions;
         try {
             versions = getVersions(rangeDep, repositories);
@@ -44,6 +46,7 @@ public class MavenClient {
         String[] parts = rangeDep.split(":");
         final String name = parts[0] + ":" + parts[1];
 
+        versions = VersionGroupingUtil.groupVersions(versions, groupingScheme);
         return versions.stream().map(version -> name + ":" + version.toString()).collect(Collectors.toList());
     }
 
