@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -92,6 +93,16 @@ class ProjectTaskFactoryTest {
         givenVersionsOneToThreeArePassesOnly();
         givenTaskFactoryExcludingVersionTwo();
         thenPassesOnlyTasksFailToBuild(GradleException.class);
+    }
+
+    @Test
+    void shouldFallBackToSurvivingVersionWhenGroupMaxIsExcluded() {
+        givenMavenClientHonorsExcludePatterns();
+        givenProjectIsConfigured();
+        givenVersionsOneToThreeArePassesOnly();
+        givenTaskFactoryExcludingVersionTwoPointOne();
+        whenPassesOnlyTasksAreBuilt();
+        thenASingleVersionTwoTaskResults();
     }
 
     @Test
@@ -164,7 +175,7 @@ class ProjectTaskFactoryTest {
     private void givenMavenClientReturnsNoResults() {
         MavenClient.INSTANCE = new MavenClient() {
             @Override
-            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
+            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme, Collection<Pattern> excludePatterns) {
                 return Collections.emptyList();
             }
         };
@@ -173,7 +184,7 @@ class ProjectTaskFactoryTest {
     private void givenMavenClientReturnsVersionsOutsidePassRange() {
         MavenClient.INSTANCE = new MavenClient() {
             @Override
-            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
+            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme, Collection<Pattern> excludePatterns) {
                 return (rangeDep.contains(":[0,)")) // implicit fails
                         ? Arrays.asList("foo:bar:0.5", "foo:bar:2.0", "foo:bar:3.3")
                         : Collections.singletonList("foo:bar:2.0"); // passesOnly
@@ -184,7 +195,7 @@ class ProjectTaskFactoryTest {
     private void givenMavenClientReturnsVersionsInsideAndOutsidePassRange() {
         MavenClient.INSTANCE = new MavenClient() {
             @Override
-            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
+            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme, Collection<Pattern> excludePatterns) {
                 if (rangeDep.contains(":[0,)")) // implicit fails
                     return Arrays.asList("foo:bar:0.5", "foo:bar:2.0", "foo:bar:2.1", "foo:bar:3.3");
                 else if (rangeDep.contains(":[1.0,3.0)")) // passesOnly
@@ -204,8 +215,27 @@ class ProjectTaskFactoryTest {
     private void givenMavenClientReturnsVersionTwo() {
         MavenClient.INSTANCE = new MavenClient() {
             @Override
-            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
+            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme, Collection<Pattern> excludePatterns) {
                 return Collections.singletonList("foo:bar:2.0");
+            }
+        };
+    }
+
+    // Simulates grouping picking the highest surviving version of a group - mirroring what the
+    // real MavenClient now does by filtering excludes before grouping. Candidates are foo:bar:2.0
+    // and foo:bar:2.1; if 2.1 is excluded, 2.0 should be selected instead of yielding nothing.
+    private void givenMavenClientHonorsExcludePatterns() {
+        MavenClient.INSTANCE = new MavenClient() {
+            @Override
+            public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme, Collection<Pattern> excludePatterns) {
+                Stream<String> candidates = Stream.of("foo:bar:2.0", "foo:bar:2.1");
+                List<String> surviving = candidates
+                        .filter(dep -> excludePatterns.stream().noneMatch(pattern -> pattern.matcher(dep).matches()))
+                        .sorted()
+                        .collect(Collectors.toList());
+                return surviving.isEmpty()
+                        ? Collections.emptyList()
+                        : Collections.singletonList(surviving.get(surviving.size() - 1));
             }
         };
     }
@@ -231,6 +261,11 @@ class ProjectTaskFactoryTest {
 
     private void givenTaskFactoryExcludingVersionTwo() {
         target = new ProjectTaskFactory(project, Collections.singletonList("foo:bar:2.0"), NOPLogger.NOP_LOGGER, tempDir.toFile());
+        target.setPassesFile(verifyOptions.passesFileName);
+    }
+
+    private void givenTaskFactoryExcludingVersionTwoPointOne() {
+        target = new ProjectTaskFactory(project, Collections.singletonList("foo:bar:2.1"), NOPLogger.NOP_LOGGER, tempDir.toFile());
         target.setPassesFile(verifyOptions.passesFileName);
     }
 

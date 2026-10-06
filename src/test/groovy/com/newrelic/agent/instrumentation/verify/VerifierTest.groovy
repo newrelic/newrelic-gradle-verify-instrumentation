@@ -110,7 +110,7 @@ class VerifierTest {
 
         MavenClient.INSTANCE = new MavenClient() {
             @Override
-            Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, VersionGroupingUtil.GroupingScheme scheme) {
+            Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, VersionGroupingUtil.GroupingScheme scheme, Collection<java.util.regex.Pattern> excludePatterns) {
                 if (rangeDep.startsWith("foo")) {
                     return [
                             'foo:bar:1.0'

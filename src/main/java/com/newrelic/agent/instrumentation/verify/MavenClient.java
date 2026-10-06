@@ -5,6 +5,7 @@
 
 package com.newrelic.agent.instrumentation.verify;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -28,6 +29,7 @@ import org.eclipse.aether.version.Version;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.newrelic.agent.instrumentation.verify.VersionGroupingUtil.*;
@@ -35,7 +37,8 @@ import static com.newrelic.agent.instrumentation.verify.VersionGroupingUtil.*;
 public class MavenClient {
     public static MavenClient INSTANCE = new MavenClient();
 
-    public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories, GroupingScheme groupingScheme) {
+    public Collection<String> resolveAvailableVersions(String rangeDep, List<RemoteRepository> repositories,
+            GroupingScheme groupingScheme, Collection<Pattern> excludePatterns) {
         Collection<Version> versions;
         try {
             versions = getVersions(rangeDep, repositories);
@@ -46,8 +49,23 @@ public class MavenClient {
         String[] parts = rangeDep.split(":");
         final String name = parts[0] + ":" + parts[1];
 
-        versions = VersionGroupingUtil.groupVersions(versions, groupingScheme);
-        return versions.stream().map(version -> name + ":" + version.toString()).collect(Collectors.toList());
+        return filterAndGroupVersions(name, versions, groupingScheme, excludePatterns);
+    }
+
+    /**
+     * Exclusions must be applied BEFORE grouping, so that grouping selects the highest
+     * surviving version per group rather than discarding the whole group when its max
+     * version happens to be excluded.
+     */
+    @VisibleForTesting
+    static Collection<String> filterAndGroupVersions(String name, Collection<Version> versions,
+            GroupingScheme groupingScheme, Collection<Pattern> excludePatterns) {
+        Collection<Version> survivingVersions = versions.stream()
+                .filter(version -> excludePatterns.stream().noneMatch(pattern -> pattern.matcher(name + ":" + version).matches()))
+                .collect(Collectors.toList());
+
+        Collection<Version> groupedVersions = VersionGroupingUtil.groupVersions(survivingVersions, groupingScheme);
+        return groupedVersions.stream().map(version -> name + ":" + version.toString()).collect(Collectors.toList());
     }
 
     private static Collection<Version> getVersions(String artifactName, List<RemoteRepository> repositories) throws VersionRangeResolutionException {
