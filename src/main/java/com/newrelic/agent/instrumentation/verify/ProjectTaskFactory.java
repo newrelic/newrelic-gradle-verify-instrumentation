@@ -96,13 +96,13 @@ public class ProjectTaskFactory {
         );
     }
 
-    // explicit fails and passes SHOULD ignore the user-defined groupingScheme and always verify ALL versions in the range.
-    // we have to assume explicit fails are there for a reason and every version should be checked.
+    // Explicit passes and fails should not apply any grouping when retrieving versions.
+    // We have to assume explicit fails are there for a reason and every version should be checked.
     private Stream<VerifyTask> expandMapToTasks(Map<String, Collection<String>> entries, boolean shouldSuccessfullyApply) {
         return entries.entrySet().stream()
                 .peek(entry -> logger.info("Resolving range: " + entry.getKey()))
                 .flatMap(entry ->
-                        MavenClient.INSTANCE.resolveAvailableVersions(entry.getKey(), mavenRepositories, GroupingScheme.ALL, excludeVersions).stream()
+                        MavenClient.INSTANCE.resolveAvailableVersions(entry.getKey(), mavenRepositories).stream()
                                 .peek(version -> logger.info("--Resolving: " + version))
                                 .flatMap(version -> addVerifyTask(version, shouldSuccessfullyApply, entry.getValue(), entry.getKey())));
     }

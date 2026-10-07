@@ -165,7 +165,7 @@ public class AfterEvaluationAction implements Action<Project> {
 
         Set<String> resolvedExclusions = verifyOptions.exclude().stream()
                 .flatMap((String excludeRange) ->
-                        mavenClient.resolveAvailableVersions(excludeRange, mavenRepositories, GroupingScheme.ALL, Collections.emptyList()).stream()
+                        mavenClient.resolveAvailableVersions(excludeRange, mavenRepositories).stream()
                                 .peek(dep -> logger.info("Excluding artifact: " + dep)))
                 .collect(Collectors.toSet());
 

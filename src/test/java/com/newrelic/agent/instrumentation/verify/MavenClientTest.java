@@ -47,52 +47,43 @@ class MavenClientTest {
     }
 
     @Test
-    void excludedMaxVersionFallsBackToNextHighestInGroup() {
-        Collection<String> result = MavenClient.filterAndGroupVersions(NAME,
-                versions("2.5.0", "2.5.1", "2.5.2"),
-                GroupingScheme.LATEST_MINOR,
-                excludePatterns("foo:bar:2\\.5\\.2"));
+    void excludingMaxVersionFallsBackToNextHighest() {
+        Collection<Version> result = MavenClient.excludeAndGroupVersions(NAME,
+                versions("2.5.0", "2.5.1", "2.5.2", "2.6.0-rc"),
+                GroupingScheme.LATEST_MAJOR,
+                excludePatterns("(?i).*2.6.*-RC.*"));
 
-        assertEquals(Collections.singletonList("foo:bar:2.5.1"), result);
+        assertEquals(Collections.singletonList("foo:bar:2.5.2"), completeVersionNames(result, NAME));
     }
 
     @Test
-    void excludingEveryVersionInAGroupDropsTheGroupEntirely() {
-        Collection<String> result = MavenClient.filterAndGroupVersions(NAME,
+    void excludingEveryVersionEliminatesGroup() {
+        Collection<Version> result = MavenClient.excludeAndGroupVersions(NAME,
                 versions("2.5.0", "2.5.1", "2.5.2", "3.1.0"),
                 GroupingScheme.LATEST_MINOR,
                 excludePatterns("foo:bar:2\\.5\\..*"));
 
-        assertEquals(Collections.singletonList("foo:bar:3.1.0"), result);
+        assertEquals(Collections.singletonList("foo:bar:3.1.0"), completeVersionNames(result, NAME));
     }
 
     @Test
-    void noExclusionsBehavesLikePlainGrouping() {
-        Collection<String> result = MavenClient.filterAndGroupVersions(NAME,
+    void noExclusionsGroupsNormally() {
+        Collection<Version> result = MavenClient.excludeAndGroupVersions(NAME,
                 versions("2.5.0", "2.5.1", "2.5.2"),
                 GroupingScheme.LATEST_MINOR,
                 Collections.emptyList());
 
-        assertEquals(Collections.singletonList("foo:bar:2.5.2"), result);
+        assertEquals(Collections.singletonList("foo:bar:2.5.2"), completeVersionNames(result, NAME));
+
+        result = MavenClient.excludeAndGroupVersions(NAME,
+                versions("2.5.0", "2.5.1", "2.5.2"),
+                GroupingScheme.ALL,
+                Collections.emptyList());
+
+        assertEquals(Arrays.asList("foo:bar:2.5.0", "foo:bar:2.5.1", "foo:bar:2.5.2"), completeVersionNames(result, NAME));
     }
 
-    @Test
-    void excludingTheOnlyVersionYieldsEmptyResult() {
-        Collection<String> result = MavenClient.filterAndGroupVersions(NAME,
-                versions("2.5.2"),
-                GroupingScheme.LATEST_MINOR,
-                excludePatterns("foo:bar:2\\.5\\.2"));
-
-        assertEquals(Collections.emptyList(), result);
-    }
-
-    @Test
-    void excludedMaxVersionFallsBackWithLatestMajorScheme() {
-        Collection<String> result = MavenClient.filterAndGroupVersions(NAME,
-                versions("4.0.0", "4.1.0", "4.13.2"),
-                GroupingScheme.LATEST_MAJOR,
-                excludePatterns("foo:bar:4\\.13\\.2"));
-
-        assertEquals(Collections.singletonList("foo:bar:4.1.0"), result);
+    private Collection<String> completeVersionNames(Collection<Version> versions, String artifact) {
+        return versions.stream().map(version -> artifact + ":" + version.toString()).collect(Collectors.toList());
     }
 }

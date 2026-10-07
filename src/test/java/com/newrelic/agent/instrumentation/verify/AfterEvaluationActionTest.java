@@ -127,7 +127,7 @@ class AfterEvaluationActionTest {
 
         when(mockVerifyOptions.excludeRegex()).thenReturn(excludeRegex);
         when(mockVerifyOptions.exclude()).thenReturn(resolvedExcludedVersions);
-        when(mockMavenClient.resolveAvailableVersions(anyString(), anyList(), any(VersionGroupingUtil.GroupingScheme.class), anyCollection()))
+        when(mockMavenClient.resolveAvailableVersions(anyString(), anyList()))
                 .thenReturn(resolvedExcludedVersions);
 
         Set<String> result = testClass.buildExcludedVersions(mockVerifyOptions, getRepositoryFunction.apply(mockProject), mockMavenClient);
