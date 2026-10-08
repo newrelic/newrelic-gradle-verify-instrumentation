@@ -12,6 +12,7 @@ import org.gradle.api.*;
 import org.slf4j.Logger;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -164,7 +165,7 @@ public class AfterEvaluationAction implements Action<Project> {
 
         Set<String> resolvedExclusions = verifyOptions.exclude().stream()
                 .flatMap((String excludeRange) ->
-                        mavenClient.resolveAvailableVersions(excludeRange, mavenRepositories, GroupingScheme.ALL).stream()
+                        mavenClient.resolveAvailableVersions(excludeRange, mavenRepositories).stream()
                                 .peek(dep -> logger.info("Excluding artifact: " + dep)))
                 .collect(Collectors.toSet());
 
